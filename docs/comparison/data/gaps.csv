@@ -1,4 +1,4 @@
-log,freq_default,freq_option,dist_default,dist_option,freq_default_s,freq_option_s,dist_default_s,dist_option_s
+log,freq_default,freq_prom_compatible,dist_default,dist_prom_compatible,freq_default_s,freq_prom_compatible_s,dist_default_s,dist_prom_compatible_s
 Helpdesk,0.1,0.0,4.0,4.0,0.3,4.0,0.2,0.1
 RTFM,1.7,0.0,2.1,2.1,1.2,2.1,1.1,1.1
 BPIC13 incidents,0.1,0.0,0.4,0.4,3.2,2.8,4.7,4.2

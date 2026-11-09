@@ -1,4 +1,4 @@
-"""Write NAME.csv for run_r.R, port.py and run_package.py, in the working directory.
+"""Write NAME.csv for run_r.R, replica.py and run_pyactitrac.py, in the working directory.
 
 Usage: python make_csv.py DATA_DIRECTORY NAME [NAME ...]
 

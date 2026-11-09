@@ -1,17 +1,18 @@
 # python-ActiTraC
 
-Python implementation of ActiTraC (active trace clustering) and ActiTraC-MO, its
-multi-objective variant. ActiTraC splits an event log into clusters by growing
-each one until a process model mined from it stops fitting, so that discovery on
-each cluster gives a better model than discovery on the whole log.
+python-ActiTraC is a Python implementation of ActiTraC (active trace clustering) and
+ActiTraC-MO, its multi-objective variant. ActiTraC splits an event log into clusters by
+growing each one until a process model mined from it stops fitting, so that discovery
+on each cluster gives a better model than discovery on the whole log.
 
-> **Disclaimer:** The port to Python, from the R code of actitraceR and the ProM
-> plugin, was done using AI (Claude Code). The repository is heavily tested:
+> **Disclaimer:** python-ActiTraC was written using AI (Claude Code), from the Java
+> code of ActiTraC-ProM, the authors' ProM plugin, and the R code of actitraceR. The
+> repository is heavily tested:
 >
 > - a test suite;
-> - a comparison with ProM's published results on eight logs;
-> - a comparison with actitraceR, where a Python port of it gives the same clusters in
->   all 48 runs that finished.
+> - a comparison with ActiTraC-ProM's published results on eight logs;
+> - a comparison with actitraceR, where the actitraceR replica, a Python copy of it, gives
+>   the same clusters in all 48 runs that finished.
 >
 > Even so, check the results on your own data before you rely on them. The sections
 > below give the known differences.
@@ -69,9 +70,9 @@ dict. DataFrames use the XES column names by default; pass `case_key`,
 
 ### Other miners
 
-Without `discover_algorithm`, clusters are mined with a native port of ProM's
-Heuristics Miner and scored with improved continuous semantics (ICS) fitness, as
-in the authors' plugin. Any pm4py Petri-net miner can replace it:
+Without `discover_algorithm`, clusters are mined with a native Python version of
+ProM's Heuristics Miner and scored with improved continuous semantics (ICS) fitness,
+as in ActiTraC-ProM. Any pm4py Petri-net miner can replace it:
 
 ```python
 result = cluster_traces(
@@ -118,7 +119,22 @@ from actitrac import cluster
 clusters = cluster(log, 4, outputshape="log", variant="frequency", cluster_remaining_traces=False)
 ```
 
-## How closely it follows ProM
+## Names in the comparisons
+
+The two sections below compare python-ActiTraC with three other implementations:
+
+| Name | What it is |
+| --- | --- |
+| **ActiTraC-ProM** | The authors' ActiTraC plugin for ProM. Its numbers here are the published results of Peeperkorn et al. |
+| **ActiTraC-ProM emulation** | Java code that reproduces the plugin, including its bugs |
+| **actitraceR** | The R package |
+| **actitraceR replica** | Python code that reproduces actitraceR, including its bugs |
+
+python-ActiTraC itself has three settings: `default`, `prom_compatible` and the
+Inductive Miner setup, which uses actitraceR's miner, fitness and edit distance.
+[docs/fidelity.md](docs/fidelity.md#names) has the details.
+
+## How closely it follows ActiTraC-ProM
 
 Activities are named by their name and lifecycle transition together, as ProM
 does. Pass `lifecycle="complete"` to keep only complete events, as actitraceR does.
@@ -126,24 +142,24 @@ On a log with none, such as BPIC 2013, no traces remain and clustering stops wit
 error. Unlike actitraceR, the comparison ignores case, so BPIC 2012's `COMPLETE` events
 count.
 
-This package does not reproduce ProM exactly. Compared with the ProM results of
-[Peeperkorn et al.](https://arxiv.org/abs/2506.23776) on eight logs:
+python-ActiTraC does not reproduce ActiTraC-ProM exactly. Compared with its published
+results in [Peeperkorn et al.](https://arxiv.org/abs/2506.23776) on eight logs:
 
 - **Frequency mode** is exact on BPIC 2013 closed problems and within 2.5% on six
   logs. It is 35% off on BPIC 2012.
 - **Distance mode** is exact on BPIC 2012 and BPIC 2013 closed problems and within
   4% on three logs. It is 10% to 28% off on Sepsis, Hospital Billing and BPIC 2015.
 - **ActiTraC-MO** substitutes the miner and the recall measure, so it is not
-  expected to match ProM. It has no reference results.
+  expected to match ActiTraC-MO in ProM. It has no reference results.
 
 The causes are known: a lookup bug in ProM's distance matrix, a fitness rounded to
-a `float`, and four smaller behaviours. A research emulation in
-`benchmarks/prom_emulation/` that includes them gives every published cluster size,
-and with them off it gives this package's.
+a `float`, and four smaller behaviours. The ActiTraC-ProM emulation in
+`benchmarks/prom_emulation/` includes them and gives every published cluster size, and
+with them off it gives python-ActiTraC's.
 
 Pass `prom_compatible=True` to add ProM's seeded token choice and `float` comparison.
-Frequency mode then gives ProM's cluster sizes on all eight logs. Distance mode stays
-different, because ProM's distance bugs are left out, and its gaps barely change.
+Frequency mode then gives ActiTraC-ProM's cluster sizes on all eight logs. Distance mode
+stays different, because ProM's distance bugs are left out, and its gaps barely change.
 
 [docs/fidelity.md](docs/fidelity.md) has the details. To repeat the comparison, run
 `benchmarks/compare_entropic.py`, with `--prom-compatible` for the option.
@@ -151,22 +167,26 @@ different, because ProM's distance bugs are left out, and its gaps barely change
 
 ## How it differs from actitraceR
 
-Run with the same miner, fitness and edit distance, this package and
-[actitraceR](https://github.com/bupaverse/actitraceR) give different clusters, with an
-adjusted Rand index of 0.21 to 0.53 on Helpdesk, 0.20 to 0.25 on Sepsis and about 0 to
-0.99 on the other logs, at noise 0.2. On Helpdesk the largest causes are that
-actitraceR measures edit distance over the characters of tokens such as `[12]`, and
-that it runs look-ahead only after a minimal-size stop. Its `window_size` has no effect,
-its `mra` option cannot run, and it stops with an error on an empty cluster or on a log
-with no `complete` events. `benchmarks/compare_actitracer/` holds a Python port that
-reproduces its clusters in all 48 runs where actitraceR finished, on all eight logs. On
-Helpdesk it also gives this package's clusters when all the differences are switched.
-`run_docker.sh` and `run_docker_rest.sh` there repeat the comparison in a container.
+In its Inductive Miner setup, python-ActiTraC uses the same miner, fitness and edit
+distance as [actitraceR](https://github.com/bupaverse/actitraceR), but the two give
+different clusters. The adjusted Rand index between them is 0.21 to 0.53 on Helpdesk,
+0.20 to 0.25 on Sepsis and about 0 to 0.99 on the other logs, at noise 0.2. On Helpdesk
+the largest causes are that actitraceR measures edit distance over the characters of
+tokens such as `[12]`, and that it runs look-ahead only after a minimal-size stop. Its
+`window_size` has no effect, its `mra` option cannot run, and it stops with an error on
+an empty cluster or on a log with no `complete` events.
+
+The actitraceR replica, `benchmarks/compare_actitracer/replica.py`, reproduces
+actitraceR's clusters in all 48 runs where actitraceR finished, on all eight logs. On
+Helpdesk it also gives python-ActiTraC's clusters when all the differences are switched.
+`run_docker.sh` and `run_docker_rest.sh` in the same directory repeat the comparison in
+a container.
 
 [docs/comparison/comparison.html](docs/comparison/comparison.html) shows every result of
-both comparisons on one page ([view it rendered](https://htmlpreview.github.io/?https://github.com/lmu-dbs/python-ActiTraC/blob/main/docs/comparison/comparison.html)). It is a standalone file that
-also opens in a browser, and [docs/comparison/](docs/comparison/) has its data and the
-scripts that build it.
+both comparisons on one page
+([view it rendered](https://htmlpreview.github.io/?https://github.com/lmu-dbs/python-ActiTraC/blob/main/docs/comparison/comparison.html)).
+It is a standalone file that also opens in a browser, and
+[docs/comparison/](docs/comparison/) has its data and the scripts that build it.
 
 pm4py's Inductive Miner with a noise threshold depends on the hash seed and on trace
 order, so set `PYTHONHASHSEED` to repeat a run with it.

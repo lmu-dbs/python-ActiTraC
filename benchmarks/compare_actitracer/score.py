@@ -3,7 +3,7 @@
 Usage: PYTHONHASHSEED=0 python score.py DATA_DIRECTORY RESULT_DIRECTORY OUT.json
 
 Run on the benchmark image, so the metrics use the same pm4py as compare_entropic.py.
-It also describes the logs and clusters them with this package's defaults, to compare
+It also describes the logs and clusters them with python-ActiTraC's defaults, to compare
 those clusters with actitraceR's. As in compare_entropic.py, the metrics use all events
 of a log, BPIC12 and BPIC15 skip alignments, and BPIC15 scores with the original case IDs.
 A run with no labels, such as one that hit the time limit, is listed under "missing".
@@ -24,13 +24,13 @@ from compare_entropic import (  # noqa: E402
 )
 
 LABELS = {
-    "Helpdesk": ["r_w25", "r_t1", "package_w25", "package_w1", "package_t1_w25", "package_t1_w1"],
-    "Sepsis": ["r_sep_t99", "r_sep_t1", "package_sep_t99_w25", "package_sep_t1_w25"],
+    "Helpdesk": ["r_w25", "r_t1", "pyactitrac_w25", "pyactitrac_w1", "pyactitrac_t1_w25", "pyactitrac_t1_w1"],
+    "Sepsis": ["r_sep_t99", "r_sep_t1", "pyactitrac_sep_t99_w25", "pyactitrac_sep_t1_w25"],
 }
 REST = ["BPIC13_closedproblems", "BPIC13_incidents", "RTFM", "Hospital_Billing", "BPIC12", "BPIC15"]
 for _name in REST:
     LABELS[_name] = [f"{tool}_{_name}_{target}{suffix}" for target in ("t10", "t099")
-                     for tool, suffix in (("r", ""), ("port", ""), ("package", "_w25"), ("package", "_w1"))]
+                     for tool, suffix in (("r", ""), ("replica", ""), ("pyactitrac", "_w25"), ("pyactitrac", "_w1"))]
 # The label file each log's native clusters are compared with, at target 1.00.
 TARGET_ONE = {"Helpdesk": "r_t1", "Sepsis": "r_sep_t1", **{name: f"r_{name}_t10" for name in REST}}
 SEEDS = (0, 1)

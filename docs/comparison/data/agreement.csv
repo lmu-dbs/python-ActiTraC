@@ -1,4 +1,4 @@
-run,log,setting,seed,actitraceR,port,ari_port,package_w25,ari_w25,package_w1,ari_w1,noise
+run,log,setting,seed,actitracer,replica,ari_replica,pyactitrac_w025,ari_pyactitrac_w025,pyactitrac_w1,ari_pyactitrac_w1,noise
 "Helpdesk | Target 0.99, mcs 0.25, noise 0.2 | seed 0",Helpdesk,"Target 0.99, mcs 0.25, noise 0.2",0,"3685, 279, 203, 413","3685, 279, 203, 413",1.000,"3452, 317, 310, 501",0.438,"3770, 340, 177, 293",0.524,0.2
 "Helpdesk | Target 0.99, mcs 0.25, noise 0.2 | seed 1",Helpdesk,"Target 0.99, mcs 0.25, noise 0.2",1,"3685, 279, 203, 413","3685, 279, 203, 413",1.000,"3452, 317, 310, 501",0.438,"3760, 338, 177, 305",0.519,0.2
 "Helpdesk | Target 0.99, mcs 0.25, noise 0.2 | seed 2",Helpdesk,"Target 0.99, mcs 0.25, noise 0.2",2,"3685, 279, 203, 413","3685, 279, 203, 413",1.000,"3452, 317, 310, 501",0.438,"3760, 338, 177, 305",0.519,0.2

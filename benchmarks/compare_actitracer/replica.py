@@ -1,12 +1,12 @@
-"""actitraceR's cluster_traces as read from its source, in Python.
+"""actitraceR replica: actitraceR's cluster_traces as read from its source, in Python.
 
-Usage: python port.py NAME K TARGET MCS NOISE OUT.csv [FLAG=VALUE ...]
+Usage: python replica.py NAME K TARGET MCS NOISE OUT.csv [FLAG=VALUE ...]
 
 dump_r.R writes the variant order, case map and tokens this reads. With no flags it
 gives actitraceR's clusters, up to pm4py's run-to-run variation. With all the flags
-below it gives this package's clusters at window_size=1. Each flag switches one behaviour:
+below it gives python-ActiTraC's clusters at window_size=1. Each flag switches one behaviour:
   dist=char|act     edit distance over token characters (R) or over activities
-  fit=log|pkg       pm4py log_fitness (R) or this package's fitness without the silent-move cost
+  fit=log|pkg       pm4py log_fitness (R) or python-ActiTraC's fitness without the silent-move cost
   mcs=now|start     minimal size against cases left now (R) or when the cluster started
   seed=test|force   the seed must pass the target (R) or always joins
   look=stop|always  look-ahead after a minimal-size stop at the target (R) or always at perfect fit

@@ -1,4 +1,4 @@
-# Write actitraceR's variant order and case map for port.py.
+# Write actitraceR's variant order and case map for replica.py.
 #   Rscript dump_r.R NAME [NAME ...]
 suppressPackageStartupMessages({library(bupaR); library(dplyr); library(actitraceR)})
 for (name in commandArgs(TRUE)) {

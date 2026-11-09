@@ -1,4 +1,4 @@
-metric,logs,freq_default,freq_option,freq_prom,dist_default,dist_option,dist_prom
+metric,logs,freq_default,freq_prom_compatible,freq_actitrac_prom,dist_default,dist_prom_compatible,dist_actitrac_prom
 replay_fitness,8,7.12,7.62,7.62,8.25,8.75,7.88
 replay_precision,8,8.12,8.25,8.25,6.75,6.00,5.75
 align_fitness,6,6.00,6.83,6.83,7.67,8.00,5.50

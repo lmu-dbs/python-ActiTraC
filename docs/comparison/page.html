@@ -52,34 +52,53 @@
   <header>
     <h1>ActiTraC implementation comparison</h1>
     <p class="takeaway">
-      With <code>prom_compatible</code>, this package's frequency mode gives ProM's cluster sizes on
+      With <code>prom_compatible</code>, python-ActiTraC's frequency mode gives ActiTraC-ProM's cluster sizes on
       <b data-draw="h-freq-exact" data-source="headline" data-field="freq_exact">—</b> of
-      <b data-draw="h-total" data-source="headline" data-field="logs">—</b> logs. The Python port reproduces actitraceR exactly on all eight logs, and how close actitraceR's clusters come to this package's depends strongly on the log.
+      <b data-draw="h-total" data-source="headline" data-field="logs">—</b> logs. The actitraceR replica reproduces actitraceR exactly on all eight logs, and how close actitraceR's clusters come to python-ActiTraC's depends strongly on the log.
     </p>
   </header>
 
   <section class="tiles" id="headlines">
     <div class="card">
       <div class="tile-value"><b data-draw="t-freq" data-source="headline" data-field="freq_exact">—</b> of <b data-draw="t-logs" data-source="headline" data-field="logs">—</b></div>
-      <div class="note">Logs where frequency mode with <code>prom_compatible</code> gives ProM's exact sizes.</div>
+      <div class="note">Logs where python-ActiTraC's frequency mode with <code>prom_compatible</code> gives ActiTraC-ProM's exact sizes.</div>
     </div>
     <div class="card">
       <div class="tile-value"><b data-draw="t-dist" data-source="headline" data-field="dist_exact">—</b> of <b data-draw="t-logs2" data-source="headline" data-field="logs">—</b></div>
-      <div class="note">Logs where distance mode gives ProM's exact sizes, with or without the option.</div>
+      <div class="note">Logs where python-ActiTraC's distance mode gives ActiTraC-ProM's exact sizes, with or without <code>prom_compatible</code>.</div>
     </div>
     <div class="card">
-      <div class="tile-value"><b data-draw="t-port" data-source="headline" data-field="port_match">—</b> of <b data-draw="t-port-total" data-source="headline" data-field="port_runs">—</b></div>
-      <div class="note">actitraceR runs where the Python port gives every case the same cluster, on the same hash seed.</div>
+      <div class="tile-value"><b data-draw="t-replica" data-source="headline" data-field="replica_match">—</b> of <b data-draw="t-replica-total" data-source="headline" data-field="replica_runs">—</b></div>
+      <div class="note">actitraceR runs where the actitraceR replica gives every case the same cluster, on the same hash seed.</div>
     </div>
     <div class="card">
       <div class="tile-value"><b data-draw="t-low" data-source="headline" data-field="ari_low">—</b> to <b data-draw="t-high" data-source="headline" data-field="ari_high">—</b></div>
-      <div class="note">Adjusted Rand index (ARI) between actitraceR and this package at noise 0.2, using the same miner. 1 means identical clusters, 0 means chance agreement.</div>
+      <div class="note">Adjusted Rand index (ARI) between actitraceR and python-ActiTraC in its Inductive Miner setup, at noise 0.2. 1 means identical clusters, 0 means chance agreement.</div>
+    </div>
+  </section>
+
+  <section class="sec" id="names">
+    <h2>Names used on this page</h2>
+    <p class="note">The emulation and the replica each reproduce one original implementation, bugs included.</p>
+    <div class="card">
+      <div class="tablebox">
+        <table>
+          <thead><tr><th>Name</th><th>What it is</th></tr></thead>
+          <tbody>
+            <tr><td>ActiTraC-ProM, published results</td><td>The cluster sizes and metrics of Peeperkorn et al., made with the authors' ActiTraC plugin for ProM</td></tr>
+            <tr><td>ActiTraC-ProM emulation</td><td>Java code that reproduces the plugin, including its bugs, in <code>benchmarks/prom_emulation/</code></td></tr>
+            <tr><td>python-ActiTraC</td><td>This package, with three settings: <code>default</code> (Heuristics Miner and ICS fitness), <code>prom_compatible</code> (<code>prom_compatible=True</code>) and the Inductive Miner setup (Inductive Miner with a noise threshold, alignments and edit distance, as actitraceR uses)</td></tr>
+            <tr><td>actitraceR</td><td>The R package</td></tr>
+            <tr><td>actitraceR replica</td><td>Python code that reproduces actitraceR, including its bugs, in <code>benchmarks/compare_actitracer/replica.py</code></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </section>
 
   <section class="sec" id="coverage">
     <h2>What ran where</h2>
-    <p class="note">ProM itself was never run here: its numbers are the published results of Peeperkorn et al., and the emulation reruns its algorithm in plain Java, in Docker. "Clusters only" means actitraceR's labels were saved before its final evaluation, which needs about 12 hours on Sepsis. "Run, refined" means the log's lifecycle values were changed so actitraceR keeps any events, the same input went to the port and this package, and on BPIC13 empty clusters were dropped instead of stopping with an error. BPIC12 and BPIC15 needed a second batch with a 48-hour limit, after 15 runs reached the 12-hour limit; every run then finished.</p>
+    <p class="note">ActiTraC-ProM itself was never run here: its numbers are the published results of Peeperkorn et al., and the emulation reruns its algorithm in plain Java, in Docker. "Clusters only" means actitraceR's labels were saved before its final evaluation, which needs about 12 hours on Sepsis. "Run, refined" means the log's lifecycle values were changed so actitraceR keeps any events, the same input went to the replica and python-ActiTraC, and on BPIC13 empty clusters were dropped instead of stopping with an error. BPIC12 and BPIC15 needed a second batch with a 48-hour limit, after 15 runs reached the 12-hour limit; every run then finished.</p>
     <div class="card">
       <div class="tablebox">
         <table data-source="coverage" data-row-key="implementation">
@@ -97,7 +116,7 @@
   </section>
 
   <section class="sec" id="gaps">
-    <h2>Cluster size gap to ProM, by log</h2>
+    <h2>Cluster size gap between python-ActiTraC and ActiTraC-ProM, by log</h2>
     <p class="note">The share of cases that would have to move for the sizes to match, cluster by cluster. Zero means identical sizes. Bars share one scale.</p>
     <div class="card">
       <div class="tablebox">
@@ -105,9 +124,9 @@
           <thead><tr>
             <th data-field="log">Log</th>
             <th data-field="freq_default">Frequency, default (%)</th>
-            <th data-field="freq_option">Frequency, <code>prom_compatible</code> (%)</th>
+            <th data-field="freq_prom_compatible">Frequency, <code>prom_compatible</code> (%)</th>
             <th data-field="dist_default">Distance, default (%)</th>
-            <th data-field="dist_option">Distance, <code>prom_compatible</code> (%)</th>
+            <th data-field="dist_prom_compatible">Distance, <code>prom_compatible</code> (%)</th>
           </tr></thead>
           <tbody data-draw="gaps"></tbody>
         </table>
@@ -133,14 +152,14 @@
 
   <section class="sec" id="ranks">
     <h2>Average rank among the paper's 12 methods</h2>
-    <p class="note">Lower is better. Each value averages a method's rank over the logs that have the metric. The other 11 methods keep their published values.</p>
+    <p class="note">python-ActiTraC's two settings and ActiTraC-ProM's published results, each ranked in ActiTraC-ProM's place. Lower is better. Each value averages a method's rank over the logs that have the metric. The other 11 methods keep their published values.</p>
     <div class="card">
       <div class="tablebox">
         <table data-source="ranks" data-row-key="metric">
           <thead><tr>
             <th data-field="metric">Metric</th><th class="n" data-field="logs">Logs</th>
-            <th class="n" data-field="freq_default">Frequency, default</th><th class="n" data-field="freq_option">Frequency, option</th><th class="n" data-field="freq_prom">Frequency, ProM</th>
-            <th class="n" data-field="dist_default">Distance, default</th><th class="n" data-field="dist_option">Distance, option</th><th class="n" data-field="dist_prom">Distance, ProM</th>
+            <th class="n" data-field="freq_default">Frequency, default</th><th class="n" data-field="freq_prom_compatible">Frequency, <code>prom_compatible</code></th><th class="n" data-field="freq_actitrac_prom">Frequency, ActiTraC-ProM</th>
+            <th class="n" data-field="dist_default">Distance, default</th><th class="n" data-field="dist_prom_compatible">Distance, <code>prom_compatible</code></th><th class="n" data-field="dist_actitrac_prom">Distance, ActiTraC-ProM</th>
           </tr></thead>
           <tbody data-draw="ranks"></tbody>
         </table>
@@ -149,48 +168,48 @@
   </section>
 
   <section class="sec" id="actitracer">
-    <h2>actitraceR, its port and this package, with the same miner</h2>
-    <p class="note">All three use the Inductive Miner, alignments and edit distance. actitraceR and the port match in every run where both finished. This package's window 1 is the closest match to actitraceR, which ignores its window. Hash seeds are fixed, so repeated sizes across seeds are real repeats. "Time limit" means the run reached 3 hours (Helpdesk, Sepsis) without a result. On the other logs every run finished, some only in the rerun with a 48-hour limit.</p>
+    <h2>actitraceR, its replica and python-ActiTraC, with the same miner</h2>
+    <p class="note">python-ActiTraC runs in its Inductive Miner setup, so all three use the Inductive Miner, alignments and edit distance. actitraceR and the replica match in every run where both finished. python-ActiTraC's window 1 is the closest match to actitraceR, which ignores its window. Hash seeds are fixed, so repeated sizes across seeds are real repeats. "Time limit" means the run reached 3 hours (Helpdesk, Sepsis) without a result. On the other logs every run finished, some only in the rerun with a 48-hour limit.</p>
     <div class="card">
       <h3>Every run</h3>
       <div class="tablebox">
         <table data-source="agreement" data-row-key="run">
           <thead><tr>
             <th data-field="log">Log</th><th data-field="setting">Setting</th><th class="n" data-field="seed">Seed</th>
-            <th data-field="actitraceR">actitraceR</th><th data-field="port">Port</th><th class="n" data-field="ari_port">ARI, port</th>
-            <th data-field="package_w25">Package, window 0.25</th><th class="n" data-field="ari_w25">ARI</th>
-            <th data-field="package_w1">Package, window 1</th><th class="n" data-field="ari_w1">ARI</th>
+            <th data-field="actitracer">actitraceR</th><th data-field="replica">Replica</th><th class="n" data-field="ari_replica">ARI, replica</th>
+            <th data-field="pyactitrac_w025">python-ActiTraC, window 0.25</th><th class="n" data-field="ari_pyactitrac_w025">ARI</th>
+            <th data-field="pyactitrac_w1">python-ActiTraC, window 1</th><th class="n" data-field="ari_pyactitrac_w1">ARI</th>
           </tr></thead>
           <tbody data-draw="agreement"></tbody>
         </table>
       </div>
     </div>
     <div class="card">
-      <h3>This package's own miner against actitraceR</h3>
-      <p class="note">This package's defaults (Heuristics Miner, ICS fitness) at target 1.00, against actitraceR at target 1.00 on hash seed 0. These runs differ in miner and fitness as well as in the algorithm's details.</p>
+      <h3>python-ActiTraC's own miner against actitraceR</h3>
+      <p class="note">python-ActiTraC's <code>default</code> and <code>prom_compatible</code> settings (Heuristics Miner, ICS fitness) at target 1.00, against actitraceR at target 1.00 on hash seed 0. These runs differ in miner and fitness as well as in the algorithm's details.</p>
       <div class="tablebox">
         <table data-source="native" data-row-key="row">
-          <thead><tr><th data-field="log">Log</th><th data-field="mode">Mode and option</th><th data-field="sizes">Sizes</th><th class="n" data-field="ari">ARI against actitraceR</th></tr></thead>
+          <thead><tr><th data-field="log">Log</th><th data-field="mode">Mode and setting</th><th data-field="sizes">Sizes</th><th class="n" data-field="ari_actitracer">ARI against actitraceR</th></tr></thead>
           <tbody data-draw="native"></tbody>
         </table>
       </div>
     </div>
     <div class="card">
       <h3>What causes the gap</h3>
-      <p class="note">Helpdesk, target 0.99. Each row switches one behaviour in the port from actitraceR's to this package's. The last column compares the result with actitraceR on the same seed. With all eight switched, the port gives this package's window 1 clusters exactly.</p>
+      <p class="note">Helpdesk, target 0.99. Each row switches one behaviour in the replica from actitraceR's to python-ActiTraC's. The ARI compares the result with actitraceR on the same seed. With all eight switched, the replica gives python-ActiTraC's window 1 clusters exactly.</p>
       <div class="tablebox">
         <table data-source="causes" data-row-key="row">
-          <thead><tr><th data-field="change">Change</th><th class="n" data-field="seed">Seed</th><th data-field="sizes">Sizes</th><th data-field="ari">ARI against actitraceR</th><th class="n" data-field="ari_package_w1">ARI against package, window 1</th></tr></thead>
+          <thead><tr><th data-field="change">Change</th><th class="n" data-field="seed">Seed</th><th data-field="sizes">Sizes</th><th data-field="ari_actitracer">ARI against actitraceR</th><th class="n" data-field="ari_pyactitrac_w1">ARI against python-ActiTraC, window 1</th></tr></thead>
           <tbody data-draw="causes"></tbody>
         </table>
       </div>
     </div>
     <div class="card">
       <h3>Run time, in seconds</h3>
-      <p class="note">Helpdesk and Sepsis ran 16 jobs at once on 16 CPUs, the other logs 32 on 32. "Rerun 15" marks rows with runs that reached the 12-hour limit and ran again, 15 at once on 16 CPUs with a 48-hour limit, so the load differed. actitraceR's clustering stops where its final evaluation starts, and its total includes that evaluation, which was left out on the other logs. The port and this package leave the evaluation out. On BPIC12 and BPIC15 this package, in actitraceR's configuration, is far slower than the port; the likely cause is that it keeps growing clusters to the minimal size counted at the start and aligns every remaining variant in its look-ahead, but that has not been measured.</p>
+      <p class="note">Helpdesk and Sepsis ran 16 jobs at once on 16 CPUs, the other logs 32 on 32. "Rerun 15" marks rows with runs that reached the 12-hour limit and ran again, 15 at once on 16 CPUs with a 48-hour limit, so the load differed. actitraceR's clustering stops where its final evaluation starts, and its total includes that evaluation, which was left out on the other logs. The replica and python-ActiTraC leave the evaluation out. On BPIC12 and BPIC15 python-ActiTraC, in its Inductive Miner setup, is far slower than the replica; the likely cause is that it keeps growing clusters to the minimal size counted at the start and aligns every remaining variant in its look-ahead, but that has not been measured.</p>
       <div class="tablebox">
         <table data-source="times" data-row-key="run">
-          <thead><tr><th data-field="log">Log</th><th data-field="setting">Setting</th><th class="n" data-field="jobs">Jobs at once</th><th data-field="r_clustering">actitraceR, clustering</th><th data-field="r_total">actitraceR, total</th><th data-field="port">Port</th><th data-field="package">Package, window 0.25</th></tr></thead>
+          <thead><tr><th data-field="log">Log</th><th data-field="setting">Setting</th><th class="n" data-field="jobs">Jobs at once</th><th data-field="actitracer_clustering">actitraceR, clustering</th><th data-field="actitracer_total">actitraceR, total</th><th data-field="replica">Replica</th><th data-field="pyactitrac_w025">python-ActiTraC, window 0.25</th></tr></thead>
           <tbody data-draw="times"></tbody>
         </table>
       </div>
@@ -207,7 +226,7 @@
   </section>
 
   <section class="sec" id="extra">
-    <h2>Four more logs, this package only</h2>
+    <h2>Four more logs, python-ActiTraC only</h2>
     <p class="note">The ActiTraC page offers these logs but no reference results, so they show behaviour and run time only. They come from an earlier run outside Docker, at <code>k=4</code>. ICS fitness can be negative. The downloaded TSL file has more variants than the page lists, so treat its rows with care.</p>
     <div class="card">
       <div class="tablebox">
@@ -222,13 +241,13 @@
   <section class="sec" id="reading">
     <h2>How far to trust these numbers</h2>
     <ul class="plain">
-      <li>ProM's cluster logs aren't published, so membership against ProM is indirect. ER, graph density and graph entropy depend only on membership.</li>
+      <li>ActiTraC-ProM's cluster logs aren't published, so membership against ActiTraC-ProM is indirect. ER, graph density and graph entropy depend only on membership.</li>
       <li>Metrics that use pm4py's Inductive Miner vary between runs on identical clusters, so small differences in them mean little.</li>
-      <li>The rows for ProM and the package's two modes come from the benchmark run with unset hash seeds. The Inductive Miner setup rows were scored afterwards on hash seed 0, with the same pm4py version (2.7.8.4). The seed in those rows is the clustering seed.</li>
+      <li>The rows for ActiTraC-ProM and for python-ActiTraC's <code>default</code> and <code>prom_compatible</code> settings come from the benchmark run with unset hash seeds. The Inductive Miner setup rows were scored afterwards on hash seed 0, with the same pm4py version (2.7.8.4). The seed in those rows is the clustering seed.</li>
       <li>actitraceR ran on five settings on Helpdesk, two extra windows there, and two settings on Sepsis, and on targets 1.00 and 0.99 on the other six logs. It keeps only events whose lifecycle is exactly <code>complete</code>, so on raw BPIC13 and BPIC12 it finds 0 traces. For those three logs BPIC12's <code>COMPLETE</code> became lower case and every BPIC13 event was marked complete, for all three implementations. On BPIC13, actitraceR's empty clusters were dropped, because they stop it with an error; the original error logs are kept.</li>
-      <li>Of the 72 runs on the six other logs, 15 reached the 12-hour limit, all on BPIC12 and BPIC15. Rerun with a 48-hour limit, all 15 finished, in about 12 to 27 hours. This package on BPIC15 at target 0.99, seed 1, took the longest, about 97,600 s; actitraceR there took 84,797 s.</li>
+      <li>Of the 72 runs on the six other logs, 15 reached the 12-hour limit, all on BPIC12 and BPIC15. Rerun with a 48-hour limit, all 15 finished, in about 12 to 27 hours. python-ActiTraC on BPIC15 at target 0.99, seed 1, took the longest, about 97,600 s; actitraceR there took 84,797 s.</li>
       <li>The Inductive Miner setup rows on the other six logs were scored the same way, on all events of the log as in the paper, though actitraceR clustered only the complete events. BPIC12 and BPIC15 skip the alignment metrics, also as in the paper. </li>
-      <li>actitraceR and the port ran on pm4py 2.7.2, the version its wrapper pins. The clusters in each comparison were made on that version.</li>
+      <li>actitraceR, the replica and python-ActiTraC's Inductive Miner setup ran on pm4py 2.7.2, the version actitraceR's wrapper pins. The clusters in each comparison were made on that version.</li>
     </ul>
   </section>
 </div>
@@ -238,19 +257,19 @@ const rowsOf = (id) => { const d = dash.data(id); return d.status === 'ok' ? d.d
 
 dash.calc('headline', {
   title: 'Headline figures',
-  description: 'Counts exact logs from the size gaps, and summarises the agreement between actitraceR, the port and the package at noise 0.2.',
+  description: 'Counts exact logs from the size gaps, and summarises the agreement between actitraceR, the replica and python-ActiTraC at noise 0.2.',
   inputs: ['gaps', 'agreement'],
   fn: (gaps, agreement) => {
     const exact = (key) => gaps.filter((g) => Number(g[key]) === 0).length;
     const noisy = agreement.filter((a) => String(a.noise) === '0.2');
-    const aris = noisy.flatMap((a) => [a.ari_w25, a.ari_w1]).filter((x) => x !== '' && x != null).map(Number);
-    const compared = agreement.filter((a) => a.ari_port !== '' && a.ari_port != null);
+    const aris = noisy.flatMap((a) => [a.ari_pyactitrac_w025, a.ari_pyactitrac_w1]).filter((x) => x !== '' && x != null).map(Number);
+    const compared = agreement.filter((a) => a.ari_replica !== '' && a.ari_replica != null);
     return [{
       logs: gaps.length,
-      freq_exact: exact('freq_option'),
-      dist_exact: Math.min(exact('dist_default'), exact('dist_option')),
-      port_runs: compared.length,
-      port_match: compared.filter((a) => Number(a.ari_port) === 1).length,
+      freq_exact: exact('freq_prom_compatible'),
+      dist_exact: Math.min(exact('dist_default'), exact('dist_prom_compatible')),
+      replica_runs: compared.length,
+      replica_match: compared.filter((a) => Number(a.ari_replica) === 1).length,
       ari_low: Math.min(...aris).toFixed(3),
       ari_high: Math.max(...aris).toFixed(3),
     }];
@@ -262,7 +281,7 @@ const one = (name, field) => dash.draw(name, (el) => {
   el.textContent = rows.length ? rows[0][field] : '—';
 });
 one('h-freq-exact', 'freq_exact'); one('h-total', 'logs'); one('t-freq', 'freq_exact'); one('t-logs', 'logs');
-one('t-dist', 'dist_exact'); one('t-logs2', 'logs'); one('t-port', 'port_match'); one('t-port-total', 'port_runs');
+one('t-dist', 'dist_exact'); one('t-logs2', 'logs'); one('t-replica', 'replica_match'); one('t-replica-total', 'replica_runs');
 one('t-low', 'ari_low'); one('t-high', 'ari_high');
 
 const cell = (tr, text, cls) => { const td = document.createElement('td'); td.textContent = text == null ? '' : text; if (cls) td.className = cls; tr.append(td); return td; };
@@ -288,7 +307,7 @@ dash.draw('coverage', (tbody) => {
 
 dash.draw('gaps', (tbody) => {
   const rows = rowsOf('gaps');
-  const keys = ['freq_default', 'freq_option', 'dist_default', 'dist_option'];
+  const keys = ['freq_default', 'freq_prom_compatible', 'dist_default', 'dist_prom_compatible'];
   const top = Math.max(1, ...rows.flatMap((r) => keys.map((k) => Number(r[k]))));
   tbody.replaceChildren(...rows.map((r) => {
     const tr = document.createElement('tr');
@@ -398,10 +417,10 @@ dash.draw('logs', (root) => {
   }));
 });
 
-simple('ranks', 'ranks', 'metric', [['metric'], ['logs', 'n'], ['freq_default', 'n'], ['freq_option', 'n'], ['freq_prom', 'n'], ['dist_default', 'n'], ['dist_option', 'n'], ['dist_prom', 'n']]);
-simple('agreement', 'agreement', 'run', [['log'], ['setting'], ['seed', 'n'], ['actitraceR', 'sizes'], ['port', 'sizes'], ['ari_port', 'n'], ['package_w25', 'sizes'], ['ari_w25', 'n'], ['package_w1', 'sizes'], ['ari_w1', 'n']]);
-simple('native', 'native', 'row', [['log'], ['mode'], ['sizes', 'sizes'], ['ari', 'n']]);
-simple('times', 'times', 'run', [['log'], ['setting'], ['jobs', 'n'], ['r_clustering'], ['r_total'], ['port'], ['package']]);
+simple('ranks', 'ranks', 'metric', [['metric'], ['logs', 'n'], ['freq_default', 'n'], ['freq_prom_compatible', 'n'], ['freq_actitrac_prom', 'n'], ['dist_default', 'n'], ['dist_prom_compatible', 'n'], ['dist_actitrac_prom', 'n']]);
+simple('agreement', 'agreement', 'run', [['log'], ['setting'], ['seed', 'n'], ['actitracer', 'sizes'], ['replica', 'sizes'], ['ari_replica', 'n'], ['pyactitrac_w025', 'sizes'], ['ari_pyactitrac_w025', 'n'], ['pyactitrac_w1', 'sizes'], ['ari_pyactitrac_w1', 'n']]);
+simple('native', 'native', 'row', [['log'], ['mode'], ['sizes', 'sizes'], ['ari_actitracer', 'n']]);
+simple('times', 'times', 'run', [['log'], ['setting'], ['jobs', 'n'], ['actitracer_clustering'], ['actitracer_total'], ['replica'], ['pyactitrac_w025']]);
 simple('defects', 'defects', 'defect', [['defect'], ['check']]);
 simple('extra', 'extra', 'row', [['log'], ['mode'], ['seconds', 'n'], ['sizes', 'sizes'], ['weighted_ics', 'n'], ['full_log_ics', 'n']]);
 
@@ -411,11 +430,11 @@ dash.draw('causes', (tbody) => {
     cell(tr, r.change); cell(tr, r.seed, 'n'); cell(tr, r.sizes, 'sizes');
     const td = document.createElement('td');
     const box = document.createElement('div'); box.className = 'cellbar';
-    const label = document.createElement('span'); label.textContent = r.ari;
+    const label = document.createElement('span'); label.textContent = r.ari_actitracer;
     const track = document.createElement('span'); track.className = 'track';
-    const bar = document.createElement('i'); bar.style.width = `${Number(r.ari) * 100}%`; bar.style.background = dash.colors[0];
+    const bar = document.createElement('i'); bar.style.width = `${Number(r.ari_actitracer) * 100}%`; bar.style.background = dash.colors[0];
     track.append(bar); box.append(label, track); td.append(box); tr.append(td);
-    cell(tr, r.ari_package_w1, 'n');
+    cell(tr, r.ari_pyactitrac_w1, 'n');
     return tr;
   }));
 });

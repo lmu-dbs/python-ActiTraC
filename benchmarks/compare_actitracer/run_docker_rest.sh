@@ -25,10 +25,10 @@ run_job() {
     case $tool in
         r) timeout "$LIMIT" Rscript "$HERE/run_r.R" "$@" "$base.csv" 2>&1 | grep -av 'Clustering traces' > "$base.log"
            status=${PIPESTATUS[0]} ;;
-        port) name=$1; k=$2; target=$3; mcs=$4; noise=$5; shift 5
-           timeout "$LIMIT" python "$HERE/port.py" "$name" "$k" "$target" "$mcs" "$noise" "$base.csv" "$@" > "$base.log" 2>&1
+        replica) name=$1; k=$2; target=$3; mcs=$4; noise=$5; shift 5
+           timeout "$LIMIT" python "$HERE/replica.py" "$name" "$k" "$target" "$mcs" "$noise" "$base.csv" "$@" > "$base.log" 2>&1
            status=$? ;;
-        package) timeout "$LIMIT" python "$HERE/run_package.py" "$@" "$base.csv" > "$base.log" 2>&1
+        pyactitrac) timeout "$LIMIT" python "$HERE/run_pyactitrac.py" "$@" "$base.csv" > "$base.log" 2>&1
            status=$? ;;
         evaluation) timeout "$LIMIT" python "$HERE/evaluation_time.py" "$@" > "$base.log" 2>&1
            status=$? ;;
@@ -53,9 +53,9 @@ jobs_file=$(mktemp)
         for seed in 0 1; do
             for target in 1.0 0.99; do
                 tag="${name}_t${target/./}"
-                echo "port $tag $seed $name $k $target 0.25 0.2 empty=drop"
-                echo "package ${tag}_w25 $seed $name $k $target 0.25 0.25 0.2"
-                echo "package ${tag}_w1 $seed $name $k $target 0.25 1 0.2"
+                echo "replica $tag $seed $name $k $target 0.25 0.2 empty=drop"
+                echo "pyactitrac ${tag}_w25 $seed $name $k $target 0.25 0.25 0.2"
+                echo "pyactitrac ${tag}_w1 $seed $name $k $target 0.25 1 0.2"
                 echo "r $tag $seed $name $k $target 0.25 0.25 0.2"
             done
         done

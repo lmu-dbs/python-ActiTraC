@@ -1,14 +1,14 @@
-# How this implementation relates to its references
+# How python-ActiTraC relates to its references
 
 ## Sources
 
 | Source | Used for |
 | --- | --- |
-| ProM `ActiTrac` 6.9.7 package (Java source inside the [JAR](https://promtools.org/prom6/packages/ActiTrac/ActiTrac.jar)) | Reference for ActiTraC behaviour and defaults |
+| ActiTraC-ProM: the ProM `ActiTrac` 6.9.7 package (Java source inside the [JAR](https://promtools.org/prom6/packages/ActiTrac/ActiTrac.jar)) | Reference for ActiTraC behaviour and defaults |
 | ProM `ExpertTraceClustering` package | Reference for ActiTraC-MO (`ParallelClusterer`) |
 | ProM `HeuristicsMiner` and `GuideTreeMiner` packages | ICS replay semantics, miner defaults, MRA features |
 | [actitraceR](https://github.com/bupaverse/actitraceR) | API names and accessors, and a run-by-run comparison |
-| [EntropicClustering](https://github.com/jaripeeperkorn/EntropicClustering) | `cluster()` calling convention, ProM reference results |
+| [EntropicClustering](https://github.com/jaripeeperkorn/EntropicClustering) | `cluster()` calling convention, ActiTraC-ProM's published results |
 | [Peeperkorn et al.](https://arxiv.org/abs/2506.23776) | ProM version and settings behind those results, log preparation, metrics |
 | [processmining.be/actitrac](https://www.processmining.be/actitrac/) and [/multiobjective](https://processmining.be/multiobjective/) | Event logs, β and P/T connectivity description |
 
@@ -20,9 +20,27 @@ All the results below are also on one page:
 [comparison.html, rendered](https://htmlpreview.github.io/?https://github.com/lmu-dbs/python-ActiTraC/blob/main/docs/comparison/comparison.html). Its source and data are in
 [comparison/](comparison/).
 
-## Validation against ProM
+## Names
 
-Peeperkorn et al. ran ProM's ActiTraC on eight logs and published the results in
+This page and the comparison page use one name for each implementation:
+
+| Name | What it is |
+| --- | --- |
+| **ActiTraC-ProM** | The authors' ActiTraC plugin for ProM. Its *published results* are the cluster sizes and metrics of Peeperkorn et al. |
+| **ActiTraC-ProM emulation** | Java code in `benchmarks/prom_emulation/` that reproduces the plugin, including its bugs |
+| **python-ActiTraC** | This package. Its settings are `default`, `prom_compatible` and the *Inductive Miner setup* (below) |
+| **actitraceR** | The R package |
+| **actitraceR replica** | Python code in `benchmarks/compare_actitracer/replica.py` that reproduces actitraceR, including its bugs |
+
+The emulation and the replica each reproduce one original implementation. The
+Inductive Miner setup runs python-ActiTraC with actitraceR's miner, fitness and edit
+distance: the Inductive Miner with a noise threshold, alignments and OSA distance over
+activities. "ProM" alone means the ProM framework and its other packages, such as its
+Heuristics Miner.
+
+## Validation against ActiTraC-ProM
+
+Peeperkorn et al. ran ActiTraC-ProM on eight logs and published the results in
 their repository. The paper gives the settings: ProM 6.13, minimal cluster size
 0.25, target ICS fitness 1.0, remaining traces assigned to existing clusters, and
 `k` from an elbow analysis. `benchmarks/compare_entropic.py` repeats this with the
@@ -30,7 +48,7 @@ same settings. The default `lifecycle="classifier"` names activities as ProM doe
 
 **Frequency mode** (`window_size=0`):
 
-| Log | `k` | This package | ProM | Cases differ |
+| Log | `k` | python-ActiTraC | ActiTraC-ProM | Cases differ |
 | --- | --- | --- | --- | --- |
 | BPIC13 closed problems | 5 | 884, 153, 208, 175, 67 | 884, 153, 208, 175, 67 | 0% |
 | BPIC13 incidents | 5 | 1893, 2175, 352, 2784, 350 | 1893, 2179, 352, 2780, 350 | 0.1% |
@@ -43,7 +61,7 @@ same settings. The default `lifecycle="classifier"` names activities as ProM doe
 
 **Distance mode** (`window_size=0.25`):
 
-| Log | `k` | This package | ProM | Cases differ |
+| Log | `k` | python-ActiTraC | ActiTraC-ProM | Cases differ |
 | --- | --- | --- | --- | --- |
 | BPIC12 | 4 | 4224, 1965, 722, 6176 | 4224, 1965, 722, 6176 | 0% |
 | BPIC13 closed problems | 5 | 575, 175, 351, 206, 180 | 575, 175, 351, 206, 180 | 0% |
@@ -60,26 +78,26 @@ the repository, so membership cannot be compared directly. The metrics support i
 indirectly: ER, graph density and graph entropy depend only on membership, and
 they match to 3 decimals wherever the sizes match exactly.
 
-### Why this package does not match exactly
+### Why python-ActiTraC does not match exactly
 
-`benchmarks/prom_emulation/` reimplements ProM's behaviour from its source in Java,
+The ActiTraC-ProM emulation reimplements the plugin's behaviour from its source in Java,
 because Java's `float` casts, `HashSet` and `java.util.Random` are part of that
 behaviour. No ProM code was run: executing ProM's JARs was not permitted in the
-environment where this was done. So the result below is a match with ProM's
+environment where this was done. So the result below is a match with ActiTraC-ProM's
 published output, not a direct comparison run by run.
 
 - **With all behaviours on,** the emulation gives all 16 published sets of cluster
   sizes exactly. BPIC15 in frequency mode has 3012 traces in the first cluster
-  against ProM's 3011, and 3011 is the number of distinct case IDs in it (see below).
+  against ActiTraC-ProM's 3011, and 3011 is the number of distinct case IDs in it (see below).
 - **Membership also agrees.** ER, graph density and graph entropy depend on which
   traces share a cluster. Of the 48 published values, 47 match to within rounding.
   The other is BPIC15's frequency entropy, 24.250 against 24.257.
-- **With all behaviours off,** the emulation gives this package's sizes on all 16,
+- **With all behaviours off,** the emulation gives python-ActiTraC's sizes on all 16,
   again up to those BPIC15 case IDs. So these behaviours account for the whole gap.
 
 These behaviours cause it:
 
-| Behaviour in ProM | Where | Effect |
+| Behaviour in ActiTraC-ProM | Where | Effect |
 | --- | --- | --- |
 | Distance lookup bug | `MaxRepeatAlphabetDistanceXLog` | Stores `matrix[i][j-i]` from a square matrix, so distances between variants `a` and `b` are read from the row of `a` at column `b-a` |
 | Float rounding | `ProcessModel.getFitness` | The fitness is cast to a `float` before the comparison with the target. A net that parses every event but leaves a few tokens behind rounds to exactly 1.0 on a large log |
@@ -88,7 +106,7 @@ These behaviours cause it:
 | Seeded token choice | `MarkingHeuristicsNet` | Picks tokens with `new Random(Long.MAX_VALUE)`, drawing across all traces of the log in order, so runs are deterministic but depend on the log order |
 | Last stream only | `FeatureSelection.getRepeats` | The buffer is reset inside the loop, so only the last stream is decomposed |
 
-The tables show the share of cases that differ from ProM when one behaviour alone is
+The tables show the share of cases that differ from ActiTraC-ProM when one behaviour alone is
 switched off in the emulation. "Exact" means switching it off changes nothing.
 
 Frequency mode:
@@ -120,9 +138,9 @@ Distance mode:
 These behaviours were tested and made no difference on any of the eight logs:
 
 - **`HashSet` iteration order.** Earlier versions of this page named it as the likely
-  cause. That was wrong: replacing ProM's `String` sets with sorted sets, or with three
+  cause. That was wrong: replacing ActiTraC-ProM's `String` sets with sorted sets, or with three
   different pseudo-random orders, gives the same sizes on all eight logs.
-- **Lowered thresholds that persist.** ProM mutates a shared settings object, so
+- **Lowered thresholds that persist.** ActiTraC-ProM mutates a shared settings object, so
   thresholds lowered for a small log stay lowered for the rest of the run.
 - **The limit of 10 on alphabet size.**
 
@@ -133,7 +151,7 @@ Input details matter as well:
 - **BPIC15.** Its merged log is not published. The match needs each municipality's
   log kept in file order and its cases kept apart. Two case IDs occur in two
   municipalities: ProM treats them as separate traces, while pm4py, which scored the
-  paper's clusters, merges them. That explains ProM's totals of 5,648 and 5,649 against
+  paper's clusters, merges them. That explains ActiTraC-ProM's totals of 5,648 and 5,649 against
   pm4py's 5,647, and merging them also gives the published density of 0.308.
 
 **The JAR that was read is 6.9.7**, and the runs used ProM 6.13. The exact match
@@ -144,9 +162,9 @@ suggests the behaviour did not change between them on these logs.
 `cluster_traces(..., prom_compatible=True)` adds the two behaviours that decide
 frequency mode: ProM's seeded token choice, and comparing fitness and sizes as
 `float`. It needs the native miner. The distance bugs stay out, because they would
-only match ProM by reproducing wrong distances.
+only match ActiTraC-ProM by reproducing wrong distances.
 
-| Log | Frequency | Distance: default | Distance: option | Distance sizes with the option |
+| Log | Frequency | Distance: `default` | Distance: `prom_compatible` | Distance sizes with `prom_compatible` |
 | --- | --- | --- | --- | --- |
 | BPIC12 | exact | exact | exact | 4224, 1965, 722, 6176 |
 | BPIC13 closed problems | exact | exact | exact | 575, 175, 351, 206, 180 |
@@ -158,13 +176,13 @@ only match ProM by reproducing wrong distances.
 | BPIC15 | exact | 28.2% | 27.1% | 3009, 1403, 364, 872 |
 
 The percentages are the "Cases differ" measure above. BPIC15 counts distinct case IDs,
-as ProM's published sizes do.
+as ActiTraC-ProM's published sizes do.
 
 The emulation, with its distance behaviours off and these two on, gives the same
 sizes on all 16 runs, which checks the Python replay against the Java one.
 
 **Membership also agrees in frequency mode.** ER, graph density and graph entropy depend
-only on membership, and they equal ProM's to 3 decimals on 22 of 24 values. The other two
+only on membership, and they equal ActiTraC-ProM's to 3 decimals on 22 of 24 values. The other two
 are BPIC15's ER, 25.147 against 25.146, and its entropy, 24.255 against 24.257. Every
 metric on closed problems, incidents, Helpdesk, RTFM and Sepsis matches.
 
@@ -186,16 +204,16 @@ match to within 0.001, with these exceptions:
 
 The last two vary between runs on identical input, because pm4py's Inductive Miner does
 (see "pm4py's run-to-run variation"). The same applies to every metric that uses it, so
-identical clusters can still score differently. BPIC12 in distance mode matches ProM's
+identical clusters can still score differently. BPIC12 in distance mode matches ActiTraC-ProM's
 sizes and membership, yet its replay fitness was 0.944 in one run and 0.970 in another,
 against the published 0.944.
 
-Replacing ProM's rows with this package's and re-ranking against the paper's other
+Replacing ActiTraC-ProM's rows with python-ActiTraC's and re-ranking against the paper's other
 ten clustering methods and the full-log baseline gives the average ranks below.
-The ProM column reproduces the paper's Table 2 for all 16 values. Alignment
+The ActiTraC-ProM columns reproduce the paper's Table 2 for all 16 values. Alignment
 metrics cover 6 logs, the others 8. Lower ranks are better.
 
-| Metric | Frequency: default | Frequency: option | Frequency: ProM | Distance: default | Distance: option | Distance: ProM |
+| Metric | Frequency: `default` | Frequency: `prom_compatible` | Frequency: ActiTraC-ProM | Distance: `default` | Distance: `prom_compatible` | Distance: ActiTraC-ProM |
 | --- | --- | --- | --- | --- | --- | --- |
 | Replay fitness | 7.12 | 7.62 | 7.62 | 8.25 | 8.75 | 7.88 |
 | Replay precision | 8.12 | 8.25 | 8.25 | 6.75 | 6.00 | 5.75 |
@@ -206,10 +224,10 @@ metrics cover 6 logs, the others 8. Lower ranks are better.
 | Graph density | 8.88 | 8.38 | 8.38 | 8.62 | 8.50 | 8.62 |
 | Graph entropy | 8.62 | 8.75 | 8.75 | 7.12 | 6.88 | 7.38 |
 
-"Option" means `prom_compatible=True`. In frequency mode it equals ProM's rank on seven
-metrics and differs by 0.12 on simplicity. By default, frequency mode stays within 0.83
-of ProM's rank. Distance mode differs by up to 2.17 by default and 2.50 with the option,
-both on alignment fitness.
+In frequency mode, `prom_compatible` equals ActiTraC-ProM's rank on seven metrics and
+differs by 0.12 on simplicity. With `default`, frequency mode stays within 0.83 of
+ActiTraC-ProM's rank. Distance mode differs by up to 2.17 with `default` and 2.50 with
+`prom_compatible`, both on alignment fitness.
 
 Ranks on metrics that use the Inductive Miner vary between runs. In an earlier run,
 default frequency mode ranked 7.75 on replay fitness rather than 7.12. These ranks should
@@ -217,7 +235,7 @@ not be read as one implementation being better, because a lower rank only reflec
 different clustering. The Friedman and Nemenyi tests were not rerun.
 
 Clustering took 0.1 s to 100 s per run, with the longest on BPIC15. The paper reports no
-ProM run times.
+ActiTraC-ProM run times.
 
 These numbers come from `benchmarks/docker/`, which builds the environment with pm4py
 2.7.8.4, downloads the logs and runs the tests and both modes. Its `run.sh` has the commands.
@@ -249,15 +267,15 @@ the TSL rows with care.
 ## actitraceR differs from the authors' code
 
 [actitraceR](https://github.com/bupaverse/actitraceR) (commit 89e3e24) ran on R 4.3.3
-with its pm4py wrapper's pinned version, 2.7.2. This package ran with the same miner,
-fitness and edit distance. The harness is in `benchmarks/compare_actitracer/`.
-`run_docker.sh` there runs Helpdesk and Sepsis in a container with fixed hash seeds, and
+with its pm4py wrapper's pinned version, 2.7.2. python-ActiTraC ran in its Inductive
+Miner setup, with the same miner, fitness and edit distance, and so did the actitraceR
+replica. The harness is in `benchmarks/compare_actitracer/`. `run_docker.sh` there runs Helpdesk and Sepsis in a container with fixed hash seeds, and
 `run_docker_rest.sh` runs the other six logs. `summarize.py` prints the tables, and
 `score.py` scores the clusters with the paper's eight metrics.
 
 ### Behaviour
 
-| Behaviour | actitraceR | ProM, and this package |
+| Behaviour | actitraceR | ActiTraC-ProM and python-ActiTraC |
 | --- | --- | --- |
 | Miner and fitness | Inductive Miner, alignments | Heuristics Miner, ICS |
 | Window | Ignored (see below) | Share of remaining variants, plus frequency ties |
@@ -269,32 +287,32 @@ fitness and edit distance. The harness is in `benchmarks/compare_actitracer/`.
 
 ### Defects
 
-This package does not reproduce these:
+python-ActiTraC does not reproduce these:
 
 | Defect | Evidence |
 | --- | --- |
 | `window_size` has no effect. `relative_frequency` is computed on a table still grouped by trace, so every value is 1 | Run: all 226 Helpdesk variants stay in the window at 0, 0.25 and 1. On each of four hash seeds, the three windows give identical clusters (ARI 1.000) |
 | The `mra` distance cannot run, because the function is commented out | Run: stops with "subscript out of bounds" |
-| A perfect fit can fail the target. pm4py's `log_fitness` includes a small cost for silent moves | Run: an Inductive Miner model of all of Helpdesk fits 100% of traces, with `log_fitness` 0.99953 to 0.99956 across runs. At noise 0 and target 1 it gives 3059, 725, 479, 317, where this package gives one cluster of 4580 |
+| A perfect fit can fail the target. pm4py's `log_fitness` includes a small cost for silent moves | Run: an Inductive Miner model of all of Helpdesk fits 100% of traces, with `log_fitness` 0.99953 to 0.99956 across runs. At noise 0 and target 1 it gives 3059, 725, 479, 317, where python-ActiTraC gives one cluster of 4580 |
 | Edit distance runs over the characters of tokens such as `[12]`, not over activities | Run: inserting `[3]` costs 3, inserting `[13]` costs 4, and replacing `[2]` with `[12]` costs 1. See the table below for the effect |
 | `discover_pm` does not forward `...` to the miner, so a noise threshold passed that way is lost | Source. The runs here pass it through a wrapper instead |
 | A log with no `complete` events stops with an error. The filter is exact, so `COMPLETE` and logs without lifecycle values lose every event | Run: on raw BPIC13 incidents and BPIC12 it reports 0 traces to cluster. The error comes later, in the final evaluation: raw BPIC13 closed problems stops in `mutate()` |
-| An empty cluster stops the run with an error. A seed that misses the target leaves the cluster empty, and `pull()` then fails | Run: BPIC13 closed problems at target 1.00 stops with "`!!enquo(var)` must select exactly one column". The port stops at the same point there and on BPIC13 incidents at both targets |
+| An empty cluster stops the run with an error. A seed that misses the target leaves the cluster empty, and `pull()` then fails | Run: BPIC13 closed problems at target 1.00 stops with "`!!enquo(var)` must select exactly one column". The replica stops at the same point there and on BPIC13 incidents at both targets |
 | The maximal-repeat check reads single characters of tokens | Source only, because the `mra` option cannot run |
 
 ### Results
 
 All runs use noise 0.2 and `k=4` unless noted. ARI is the adjusted Rand index between
-two labellings, where 1 means identical. A port of actitraceR to Python, written from
-its source, gives every case the same cluster as R with the same hash seed in all 48
-runs where R finished: 20 on Helpdesk, 4 on Sepsis and 24 on the other six logs (ARI
-1.000 each). That includes the different results of different hash seeds on Hospital
+two labellings, where 1 means identical. The actitraceR replica, written from
+actitraceR's source, gives every case the same cluster as actitraceR with the same hash
+seed in all 48 runs where actitraceR finished: 20 on Helpdesk, 4 on Sepsis and 24 on the
+other six logs (ARI 1.000 each). That includes the different results of different hash seeds on Hospital
 Billing and on BPIC12 and BPIC15 at target 0.99. It confirms this reading of the source on all eight logs.
 
 Helpdesk, on hash seeds 0 to 3. Where the seeds give different results, each outcome
 is listed and the ARI is a range:
 
-| Target | `mcs` | actitraceR | This package, window 0.25 | ARI | This package, window 1 | ARI |
+| Target | `mcs` | actitraceR | python-ActiTraC, window 0.25 | ARI | python-ActiTraC, window 1 | ARI |
 | --- | --- | --- | --- | --- | --- | --- |
 | 0.99 | 0.25 | 3685, 279, 203, 413 | 3452, 317, 310, 501 | 0.438 | 3770, 340, 177, 293<br>3760, 338, 177, 305 | 0.519 to 0.524 |
 | 0.95 | 0.25 | 4378, 73, 111, 18 | 3429, 317, 680, 154 | 0.214 | 3746, 590, 244 | 0.301 |
@@ -303,13 +321,13 @@ is listed and the ARI is a range:
 | 1.00, noise 0 | 0.25 | 3059, 725, 479, 317 | 4580 | 0.000 | 4580 | 0.000 |
 
 Window 1 is the closest match to actitraceR ignoring the window. In actitraceR, the
-1.00 rows at noise 0.2 and noise 0 give identical clusters. This package's window 1
+1.00 rows at noise 0.2 and noise 0 give identical clusters. python-ActiTraC's window 1
 gives three clusters at target 0.95, because every variant has a cluster by then.
 
 Sepsis, with `k=6` and hash seeds 0 and 1. Windows 0.25 and 1 give identical clusters
-in this package. The ARI compares the same seed:
+in python-ActiTraC. The ARI compares the same seed:
 
-| Target | actitraceR, and the port | This package | ARI |
+| Target | actitraceR and its replica | python-ActiTraC | ARI |
 | --- | --- | --- | --- |
 | 0.99 | 148, 710, 139, 43, 6, 4<br>172, 676, 26, 5, 167, 4 | 704, 34, 136, 146, 23, 7<br>705, 33, 132, 78, 93, 9 | 0.208<br>0.195 |
 | 1.00 | 36, 94, 37, 671, 191, 21<br>36, 94, 37, 671, 191, 21 | 175, 109, 257, 447, 23, 39<br>175, 108, 258, 446, 23, 40 | 0.247<br>0.246 |
@@ -333,14 +351,14 @@ These ran with `run_docker_rest.sh`, with a 12-hour limit per run and 32 runs at
 on 32 CPUs, on hash seeds 0 and 1. The 15 runs that reached the limit, all on BPIC12 and
 BPIC15, ran again with a 48-hour limit (`LIMIT=172800`) and 15 runs at once on 16 CPUs,
 and all finished. Two changes were needed to get results from
-actitraceR, and the port and this package got the same input:
+actitraceR, and the replica and python-ActiTraC got the same input:
 
 - **Lifecycle.** actitraceR keeps only events whose lifecycle is exactly `complete`.
   `make_csv.py` turns BPIC12's `COMPLETE` into `complete`, so the other values stay out
   as before, and marks every event of BPIC13 complete, since its lifecycle values are
   statuses. The other four logs are unchanged.
 - **Empty clusters.** With `ACTITRACER_DROP_EMPTY=1`, `run_r.R` removes empty clusters
-  before the residual step, and the port does the same with `empty=drop`. This changed
+  before the residual step, and the replica does the same with `empty=drop`. This changed
   only BPIC13: closed problems at target 1.00 and incidents at both targets otherwise
   stop with an error.
 
@@ -348,7 +366,7 @@ The final evaluation was left out (`ACTITRACER_EVALUATE=0`), since it does not c
 the clusters. The original error logs are kept in `unrefined/` in the result
 directory. Sizes are for seed 0, and seed 1 gave the same unless listed:
 
-| Log | Target | actitraceR, and the port | This package, window 0.25 | ARI | This package, window 1 | ARI |
+| Log | Target | actitraceR and its replica | python-ActiTraC, window 0.25 | ARI | python-ActiTraC, window 1 | ARI |
 | --- | --- | --- | --- | --- | --- | --- |
 | BPIC13 closed problems, `k=5` | 1.00 | 947, 534, 5, 1 | 946, 469, 33, 10, 29 | 0.844 | Same as window 0.25 | 0.844 |
 | | 0.99 | 952, 485, 23, 22, 5 | 946, 510, 25, 4, 2 | 0.957 | Same as window 0.25 | 0.957 |
@@ -367,27 +385,27 @@ The BPIC15 sizes count the unique case IDs of the five municipalities, so they s
 5649. On the raw logs, without the lifecycle change, actitraceR finds 0 traces to
 cluster on BPIC13 and BPIC12.
 
-Across the eight logs, this package and actitraceR agree from not at all (ARI −0.003
+Across the eight logs, python-ActiTraC and actitraceR agree from not at all (ARI −0.003
 and 0.006 on BPIC15) to nearly fully (0.990 on RTFM at target 0.99). Which of the
 differences causes the gap on these logs was measured only on Helpdesk (below).
 
 Run times with 16 jobs at once on 16 CPUs:
 
-| Log and setting | actitraceR | Port | This package |
+| Log and setting | actitraceR | Replica | python-ActiTraC |
 | --- | --- | --- | --- |
 | Helpdesk, target 0.99, `mcs` 0.25 | 144 s to 148 s (about 123 s clustering) | 9 s to 10 s | 8 s to 9 s |
 | Sepsis, target 0.99 | 1750 s to 2264 s clustering, evaluation unfinished | 1264 s to 1611 s | 708 s to 762 s |
 | Sepsis, target 1.00 | 1377 s to 1396 s clustering, evaluation unfinished | 192 s to 194 s | 1210 s to 1245 s |
 
-On Helpdesk, most of R's time is not the algorithm, since the port runs the same steps
+On Helpdesk, most of R's time is not the algorithm, since the replica runs the same steps
 in far less time. R also converts each sublog from R to Python, and evaluates fitness
-and precision at the end. The port leaves that evaluation out.
+and precision at the end. The replica leaves that evaluation out.
 
 On the other six logs, with 32 runs at once on 32 CPUs and no final evaluation in R,
 in seconds. Times marked * come from the rerun with a 48-hour limit and 15 runs at once
 on 16 CPUs, so the load differed:
 
-| Log and target | actitraceR | Port | This package, window 0.25 |
+| Log and target | actitraceR | Replica | python-ActiTraC, window 0.25 |
 | --- | --- | --- | --- |
 | BPIC13 closed problems, 1.00 | 147 | 10 | 3 |
 | BPIC13 closed problems, 0.99 | 39 | 5 | 13 |
@@ -404,16 +422,16 @@ on 16 CPUs, so the load differed:
 
 In the first batch, each of the runs marked * reached the 12-hour limit.
 
-On BPIC12 at target 1.00 and on BPIC15, this package in actitraceR's configuration is
-far slower than the port. It keeps adding to a cluster until the minimal size counted at
+On BPIC12 at target 1.00 and on BPIC15, python-ActiTraC in its Inductive Miner setup is
+far slower than the replica. It keeps adding to a cluster until the minimal size counted at
 the cluster's start, and its look-ahead aligns every remaining variant, so it may mine and
 align many more sublogs. That is a likely cause, not a measured one.
 
 ### What causes the gap
 
-The port has one switch for each difference, and turning on all of them gives this
-package's clusters exactly, with ARI 1.000 on four hash seeds. That accounts for the
-whole gap on Helpdesk at target 0.99. Turning on one at a time from actitraceR gives
+The replica has one switch for each difference, and turning on all of them gives
+python-ActiTraC's clusters exactly, with ARI 1.000 on four hash seeds. That accounts for
+the whole gap on Helpdesk at target 0.99. Turning on one at a time from actitraceR gives
 the following on hash seed 1. The last column shows the seeds with other results:
 
 | Change to actitraceR | Sizes | ARI against actitraceR | Other seeds |
@@ -435,9 +453,9 @@ same traces, so neither implementation repeats exactly by default:
 - **Hash seed.** With hash seeds left unset, one R configuration gave 3685, 279, 203,
   413 in six of nine runs and 3653, 464, 205, 258 in three (ARI 0.740). Seeds 0 to 3
   all gave the first result, so the second has no known seed. Other settings do vary
-  with these seeds. R and the port give three outcomes at `mcs` 0.60 (lowest ARI 0.958),
+  with these seeds. actitraceR and the replica give three outcomes at `mcs` 0.60 (lowest ARI 0.958),
   and two at target 0.99 on Sepsis (ARI 0.711), as well as on Hospital Billing at
-  target 0.99 and on BPIC12 and BPIC15 at target 0.99. This package gave 3760, 338, 177, 305 or
+  target 0.99 and on BPIC12 and BPIC15 at target 0.99. python-ActiTraC gave 3760, 338, 177, 305 or
   3770, 340, 177, 293 (ARI 0.991), and on Sepsis ARI 0.967 at target 0.99 and 0.996 at
   target 1.00. On BPIC12 and BPIC15 at target 0.99 its two seeds differ widely, for
 example 1370, 2665, 1434, 180 against 5562, 53, 23, 11 on BPIC15. `PYTHONHASHSEED`
@@ -454,32 +472,32 @@ With correct fitness, the Inductive Miner at noise 0 fits everything, so one clu
 takes the whole log. `discover_algorithm` therefore needs a noise threshold to be
 useful here.
 
-## Deliberate differences from ProM
+## Deliberate differences from ActiTraC-ProM
 
-| Area | ProM | This package | Why |
+| Area | ActiTraC-ProM | python-ActiTraC | Why |
 | --- | --- | --- | --- |
 | Small-log thresholds | Lowered thresholds stay lowered for the rest of the run | Recomputed for each log | Order-dependent side effect. No effect on the eight logs above |
-| Token choice in replay | Seeded random among options, drawn per trace in log order | Smallest cover, lowest index first | Lets variants be replayed once instead of every case. `prom_compatible=True` follows ProM |
-| Fitness comparison | Cast to `float` first | Exact | The cast hides leftover tokens on large logs, more so the larger the log. It is the main cause of the BPIC12 gap in frequency mode. `prom_compatible=True` follows ProM |
+| Token choice in replay | Seeded random among options, drawn per trace in log order | Smallest cover, lowest index first | Lets variants be replayed once instead of every case. `prom_compatible=True` follows ActiTraC-ProM |
+| Fitness comparison | Cast to `float` first | Exact | The cast hides leftover tokens on large logs, more so the larger the log. It is the main cause of the BPIC12 gap in frequency mode. `prom_compatible=True` follows ActiTraC-ProM |
 | Distance lookup | Reads the wrong matrix cell (see above) | Reads the correct cell | Bug |
 | Replay with conflicting input sets | Can drop the combination and consume nothing | Always consumes a cover | Appears to be an unintended outcome of the search |
 | Base MRA features | Decomposes only the last repeat from a `HashSet`, and drops super-maximal repeats | Uses all repeats, drops only the inputs | Bug: the buffer is reset inside the loop |
-| Distance sum | Truncated to an `int` at each step | Exact | Rounding artefact. It only reaches ProM's results together with the lookup bug |
+| Distance sum | Truncated to an `int` at each step | Exact | Rounding artefact. It only reaches ActiTraC-ProM's results together with the lookup bug |
 | Base MRA alphabets | Cut with the wrong encoding length (see above) | One alphabet symbol per activity | Bug |
 | Petri net conversion | ProM's converter returns no final marking | One place per XOR set, joined by silent transitions, with a sink | Alignments need a final marking |
 
-Frequency mode keeps one ProM quirk on purpose: the seed does not count towards
+Frequency mode keeps one ActiTraC-ProM quirk on purpose: the seed does not count towards
 the minimal cluster size, and its fitness is not tested. Normalising this moved
-the Helpdesk result from 3824 to 3456 cases in the first cluster, against ProM's
+the Helpdesk result from 3824 to 3456 cases in the first cluster, against ActiTraC-ProM's
 3828.
 
 ## ActiTraC-MO
 
 The published page describes a threshold on weighted F-score and P/T
-connectivity. The code differs from that description, and this package combines
+connectivity. The code differs from that description, and python-ActiTraC combines
 them:
 
-| Aspect | ProM code | This package |
+| Aspect | ActiTraC-MO in ProM | python-ActiTraC |
 | --- | --- | --- |
 | Algorithm | Clusters grown in parallel from random frequent seeds | Same |
 | Miner | Fodina, with Heuristics Miner commented out in the wizard | Native Heuristics Miner, because no Python Fodina was available |
@@ -510,9 +528,9 @@ fitness 0.889 against 0.850.
 
 **The default thresholds leave most variants in the residual cluster on this
 log.** A likely reason is the trace score: ETConformance on a log of one trace
-penalises every choice the model allows and that trace does not take. ProM uses
-the same measure, but whether it behaves this way there is unknown, because this
-package uses a different miner and recall measure. Lower
+penalises every choice the model allows and that trace does not take. ActiTraC-MO in
+ProM uses the same measure, but whether it behaves this way there is unknown, because
+python-ActiTraC uses a different miner and recall measure. Lower
 `minimal_trace_correctness` if the residual cluster is too large.
 
 Run time grows with the cluster size, since each variant retrains and rescores up

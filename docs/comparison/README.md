@@ -1,9 +1,10 @@
 # Implementation comparison page
 
-This page compares ProM's published results, this package, actitraceR and its Python
-port on the eight logs of [Peeperkorn et al.](https://arxiv.org/abs/2506.23776). It shows
+This page compares ActiTraC-ProM's published results, python-ActiTraC, actitraceR and
+the actitraceR replica on the eight logs of [Peeperkorn et al.](https://arxiv.org/abs/2506.23776). It shows
 cluster sizes, the paper's metrics, the adjusted Rand index between implementations,
-run times and actitraceR's defects. [fidelity.md](../fidelity.md) explains the results.
+run times and actitraceR's defects. [fidelity.md](../fidelity.md) explains the results
+and [defines these names](../fidelity.md#names).
 
 [View the page rendered](https://htmlpreview.github.io/?https://github.com/lmu-dbs/python-ActiTraC/blob/main/docs/comparison/comparison.html), or open [comparison.html](comparison.html) in a
 browser. It needs no server and no network.
@@ -20,10 +21,11 @@ browser. It needs no server and no network.
 
 The results come from three Docker runs, with the volume `actitrac-data` at `/data`:
 
-1. `benchmarks/docker/run.sh` writes `/data/out`: this package and ProM's published
-   results.
+1. `benchmarks/docker/run.sh` writes `/data/out`: python-ActiTraC's `default` and
+   `prom_compatible` settings, and ActiTraC-ProM's published results.
 2. `benchmarks/compare_actitracer/run_docker.sh` and `run_docker_rest.sh` write
-   `/data/r_out`: actitraceR, the port, and this package with actitraceR's miner.
+   `/data/r_out`: actitraceR, the actitraceR replica, and python-ActiTraC in its
+   Inductive Miner setup. Their files start with `r_`, `replica_` and `pyactitrac_`.
 3. `benchmarks/compare_actitracer/score.py` scores those runs. Save its output as
    `/data/r_out/score.json`.
 

@@ -12,7 +12,7 @@ from agreement import adjusted_rand_index, load
 
 SEEDS = (0, 1, 2, 3)
 HELPDESK_FLAGS = ("look", "dist", "mcs", "fit", "feed", "order", "resid", "seed", "all")
-# Setting: (actitraceR tag, port tag, package tag at window 0.25, at window 1).
+# Setting: (actitraceR tag, replica tag, python-ActiTraC tag at window 0.25, at window 1).
 SETTINGS = {
     "Target 0.99, mcs 0.25": ("w25", "base", "w25", "w1"),
     "Target 0.95, mcs 0.25": ("t95", "t95", "t95_w25", "t95_w1"),
@@ -67,17 +67,18 @@ def log_times(directory, tool, tag, seed):
 
 
 def comparison(directory, settings, seeds):
-    for name, (r_tag, port_tag, package_quarter, package_one) in settings.items():
+    for name, (r_tag, replica_tag, quarter_tag, one_tag) in settings.items():
         print(f"\n### {name}\n")
-        print("| Seed | actitraceR | Port | ARI R, port | Package w=0.25 | ARI | Package w=1 | ARI |")
+        print("| Seed | actitraceR | Replica | ARI R, replica | python-ActiTraC w=0.25 | ARI "
+              "| python-ActiTraC w=1 | ARI |")
         print("| --- | --- | --- | --- | --- | --- | --- | --- |")
         for seed in seeds:
             r = labels(directory, "r", r_tag, seed)
-            port = labels(directory, "port", port_tag, seed)
-            quarter = labels(directory, "package", package_quarter, seed)
-            one = labels(directory, "package", package_one, seed)
-            print(f"| {seed} | {sizes(r)} | {sizes(port)} | {ari(r, port)} | {sizes(quarter)} | {ari(r, quarter)} "
-                  f"| {sizes(one)} | {ari(r, one)} |")
+            replica = labels(directory, "replica", replica_tag, seed)
+            quarter = labels(directory, "pyactitrac", quarter_tag, seed)
+            one = labels(directory, "pyactitrac", one_tag, seed)
+            print(f"| {seed} | {sizes(r)} | {sizes(replica)} | {ari(r, replica)} "
+                  f"| {sizes(quarter)} | {ari(r, quarter)} | {sizes(one)} | {ari(r, one)} |")
 
 
 def self_agreement(directory, tool, tag, seeds):
@@ -100,38 +101,39 @@ def main(directory):
         a, b, c = (labels(directory, "r", t, seed) for t in ("w0", "w25", "w1"))
         print(f"| {seed} | {sizes(a)} | {sizes(b)} | {sizes(c)} | {ari(a, b)} | {ari(b, c)} |")
 
-    print("\n## Port against actitraceR, any seed (best ARI)\n")
-    print("| Setting | R seed | Best port seed | ARI |")
+    print("\n## Replica against actitraceR, any seed (best ARI)\n")
+    print("| Setting | R seed | Best replica seed | ARI |")
     print("| --- | --- | --- | --- |")
-    for name, (r_tag, port_tag, _, _) in SETTINGS.items():
+    for name, (r_tag, replica_tag, _, _) in SETTINGS.items():
         for seed in SEEDS:
             r = labels(directory, "r", r_tag, seed)
-            scores = {s: labels(directory, "port", port_tag, s) for s in SEEDS}
+            scores = {s: labels(directory, "replica", replica_tag, s) for s in SEEDS}
             scores = {s: adjusted_rand_index(r, v) for s, v in scores.items() if v is not None and r is not None}
             if scores:
                 best = max(scores, key=scores.get)
                 print(f"| {name} | {seed} | {best} | {scores[best]:.3f} |")
 
-    print("\n## One difference at a time, from actitraceR's behaviour in the port\n")
-    print("| Change | Seed | Sizes | ARI against port base, same seed |")
+    print("\n## One difference at a time, from actitraceR's behaviour in the replica\n")
+    print("| Change | Seed | Sizes | ARI against replica base, same seed |")
     print("| --- | --- | --- | --- |")
     for flag in HELPDESK_FLAGS:
         for seed in SEEDS:
-            run = labels(directory, "port", flag, seed)
-            print(f"| {flag} | {seed} | {sizes(run)} | {ari(run, labels(directory, 'port', 'base', seed))} |")
+            run = labels(directory, "replica", flag, seed)
+            print(f"| {flag} | {seed} | {sizes(run)} | {ari(run, labels(directory, 'replica', 'base', seed))} |")
 
-    print("\n## All differences on, against this package at window 1\n")
-    print("| Seed | Port, all on | Package | ARI |")
+    print("\n## All differences on, against python-ActiTraC at window 1\n")
+    print("| Seed | Replica, all on | python-ActiTraC | ARI |")
     print("| --- | --- | --- | --- |")
     for seed in SEEDS:
-        a, b = labels(directory, "port", "all", seed), labels(directory, "package", "w1", seed)
+        a, b = labels(directory, "replica", "all", seed), labels(directory, "pyactitrac", "w1", seed)
         print(f"| {seed} | {sizes(a)} | {sizes(b)} | {ari(a, b)} |")
 
     print("\n## Hash-seed variation (ARI is the lowest between seeds)\n")
     print("| Tool | Setting | Outcomes and seeds | Lowest ARI |")
     print("| --- | --- | --- | --- |")
-    for tool, tags in (("r", ("w25", "t95", "mcs60", "t1", "noise0")), ("port", ("base", "t95", "mcs60", "t1", "noise0")),
-                       ("package", ("w25", "w1", "t95_w25", "mcs60_w25", "t1_w25", "noise0_w25"))):
+    for tool, tags in (("r", ("w25", "t95", "mcs60", "t1", "noise0")),
+                       ("replica", ("base", "t95", "mcs60", "t1", "noise0")),
+                       ("pyactitrac", ("w25", "w1", "t95_w25", "mcs60_w25", "t1_w25", "noise0_w25"))):
         for tag in tags:
             outcomes, low = self_agreement(directory, tool, tag, SEEDS)
             shown = "; ".join(f"{k} ({','.join(map(str, v))})" for k, v in outcomes.items())
@@ -150,8 +152,8 @@ def main(directory):
     print("\n## Times and exit status\n")
     print("| File | Status | Clustering s | Total s |")
     print("| --- | --- | --- | --- |")
-    for file in sorted(f for f in os.listdir(directory) if re.match(r"(r|port|package)_.*\.log$", f)):
-        tool, tag, seed = re.match(r"(r|port|package)_(.*)_s(\d+)\.log$", file).groups()
+    for file in sorted(f for f in os.listdir(directory) if re.match(r"(r|replica|pyactitrac)_.*\.log$", f)):
+        tool, tag, seed = re.match(r"(r|replica|pyactitrac)_(.*)_s(\d+)\.log$", file).groups()
         t = log_times(directory, tool, tag, seed)
         clustering = t.get("clustering", t.get("python", ""))
         print(f"| {file[:-4]} | {t.get('status')} | {clustering} | {t.get('total', t.get('python', ''))} |")

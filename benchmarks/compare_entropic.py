@@ -1,7 +1,7 @@
-"""Compare this package with the ProM ActiTraC results of Peeperkorn et al.
+"""Compare python-ActiTraC with the ActiTraC-ProM results of Peeperkorn et al.
 
 Reruns the experiment of "Model-driven Stochastic Trace Clustering"
-(https://arxiv.org/abs/2506.23776) with this package in place of ProM, and prints
+(https://arxiv.org/abs/2506.23776) with python-ActiTraC in place of ActiTraC-ProM, and prints
 the differences from the results published in
 https://github.com/jaripeeperkorn/EntropicClustering.
 
@@ -87,7 +87,7 @@ def _prepare_bpic15(data: str) -> pd.DataFrame:
 
     Each municipality's log keeps its case order and gets the same preparation:
     the first two parts of each activity code, direct repeats collapsed, and start
-    and end events. This gives Table 1's statistics for this log, ProM's cluster
+    and end events. This gives Table 1's statistics for this log, ActiTraC-ProM's cluster
     sizes, and with case IDs merged its DFG (density 0.308).
 
     Two case IDs occur in two municipalities. ProM treats them as separate traces,
@@ -179,7 +179,7 @@ def weighted_average(rows: list[dict[str, float]], sizes: list[int]) -> dict[str
 
 
 def published_rows(results: str, name: str) -> tuple[pd.DataFrame, dict[str, list[int]]]:
-    """Return one row per method and ProM's cluster sizes, keeping cluster order."""
+    """Return one row per method and ActiTraC-ProM's cluster sizes, keeping cluster order."""
     table = pd.read_csv(os.path.join(results, f"{name}_results.csv"))
     cluster = table["cluster"].astype(str)
     summary = table[(table["method"] == "full_log") | (cluster == "average")]
@@ -217,7 +217,7 @@ def compare_log(
         ]
         print(f"  {label:6s} " + " ".join(cells), flush=True)
 
-    print(f"\n{name}  (metrics are this package/ProM)")
+    print(f"\n{name}  (metrics are python-ActiTraC/ActiTraC-ProM)")
     show("full", evaluate(scored, alignments), table.loc["full_log"])
 
     for mode, window in MODES.items():
@@ -263,7 +263,7 @@ def main() -> None:
     for name in args.logs:
         compare_log(args.data, args.results, name, ranks, args.prom_compatible)
 
-    print("\nAverage rank among the paper's 12 methods, this package/ProM")
+    print("\nAverage rank among the paper's 12 methods, python-ActiTraC/ActiTraC-ProM")
     for (mode, metric), values in sorted(ranks.items()):
         mine, prom = zip(*values)
         print(f"  {mode:14s} {metric:17s} {np.mean(mine):5.2f} {np.mean(prom):5.2f}  n={len(values)}")

@@ -4,5 +4,5 @@ The mra distance cannot run,Stops with: subscript out of bounds
 A perfect fit can fail the target,A model that fits every Helpdesk trace has log_fitness 0.99955
 Edit distance runs over token characters,insert [3]: 3  insert [13]: 4  replace [2] with [12]: 1
 A log with no complete events stops with an error,Raw BPIC13 closed problems exits with status 1 in the final evaluation. actitraceR finds 0 traces to cluster on raw BPIC13 incidents and 0 on raw BPIC12
-An empty cluster stops the run with an error,BPIC13 closed problems at target 1.00 stops in pull(): must select exactly one column. The port stops at the same point on it and on BPIC13 incidents
+An empty cluster stops the run with an error,BPIC13 closed problems at target 1.00 stops in pull(): must select exactly one column. The replica stops at the same point on it and on BPIC13 incidents
 Final evaluation does not finish on Sepsis,"All 4 runs were still in it at the 3-hour limit. Timed alone, the per-cluster steps took 430 s, the whole-log model at noise 0 took 769 s for fitness, and its precision took 40412 s"

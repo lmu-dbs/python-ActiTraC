@@ -1,4 +1,4 @@
-run,log,setting,jobs,r_clustering,r_total,port,package
+run,log,setting,jobs,actitracer_clustering,actitracer_total,replica,pyactitrac_w025
 "Helpdesk | Target 0.99, mcs 0.25",Helpdesk,"Target 0.99, mcs 0.25",16,122 to 124,144 to 148,9 to 10,8
 "Helpdesk | Target 0.95, mcs 0.25",Helpdesk,"Target 0.95, mcs 0.25",16,80 to 82,97 to 98,18 to 19,19 to 20
 "Helpdesk | Target 0.99, mcs 0.60",Helpdesk,"Target 0.99, mcs 0.60",16,130 to 142,146 to 158,20,22 to 23

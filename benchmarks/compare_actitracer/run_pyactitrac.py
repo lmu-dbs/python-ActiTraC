@@ -1,6 +1,6 @@
-"""This package in actitraceR's configuration: Inductive Miner, alignments, OSA.
+"""python-ActiTraC in the Inductive Miner setup: Inductive Miner, alignments, OSA.
 
-Usage: python run_package.py NAME K TARGET MCS WINDOW NOISE OUT.csv
+Usage: python run_pyactitrac.py NAME K TARGET MCS WINDOW NOISE OUT.csv
 
 The R wrapper pins pm4py 2.7.2, so run this on that version. Results depend on
 PYTHONHASHSEED, because pm4py's Inductive Miner does.

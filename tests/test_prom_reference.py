@@ -1,4 +1,4 @@
-"""Compare against ActiTraC results produced by ProM.
+"""Compare against the published results of ActiTraC-ProM.
 
 The reference sizes come from the Helpdesk results of
 https://github.com/jaripeeperkorn/EntropicClustering. To run these tests, set

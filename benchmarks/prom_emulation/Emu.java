@@ -4,9 +4,9 @@ import java.nio.file.*;
 import java.util.*;
 
 /**
- * Research emulation of ProM's ActiTraC, reimplemented from reading its source:
+ * ActiTraC-ProM emulation, reimplemented from reading the plugin's source:
  * Heuristics Miner, ICS replay and the two greedy clusterers. It exists to find out
- * which behaviours explain the difference from this package; see run.py and
+ * which behaviours explain the difference from python-ActiTraC; see run.py and
  * docs/fidelity.md. Flags switch each behaviour off.
  */
 public class Emu {

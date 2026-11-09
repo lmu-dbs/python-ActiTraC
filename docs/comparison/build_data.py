@@ -119,13 +119,13 @@ gaps = [
     {
         "log": NAMES[log_name],
         "freq_default": default[log_name]["freq"]["gap"],
-        "freq_option": option[log_name]["freq"]["gap"],
+        "freq_prom_compatible": option[log_name]["freq"]["gap"],
         "dist_default": default[log_name]["dist"]["gap"],
-        "dist_option": option[log_name]["dist"]["gap"],
+        "dist_prom_compatible": option[log_name]["dist"]["gap"],
         "freq_default_s": default[log_name]["freq"]["seconds"],
-        "freq_option_s": option[log_name]["freq"]["seconds"],
+        "freq_prom_compatible_s": option[log_name]["freq"]["seconds"],
         "dist_default_s": default[log_name]["dist"]["seconds"],
-        "dist_option_s": option[log_name]["dist"]["seconds"],
+        "dist_prom_compatible_s": option[log_name]["dist"]["seconds"],
     }
     for log_name in LOGS
 ]
@@ -168,17 +168,17 @@ def add(log_name, group, impl, sizes, metrics, seed="", show=True):
 TAGS = {
     "Helpdesk": [
         ("r_t1", "actitraceR, target 1.00"),
-        ("package_t1_w25", "Package, target 1.00, window 0.25"),
-        ("package_t1_w1", "Package, target 1.00, window 1"),
+        ("pyactitrac_t1_w25", "python-ActiTraC, target 1.00, window 0.25"),
+        ("pyactitrac_t1_w1", "python-ActiTraC, target 1.00, window 1"),
         ("r_w25", "actitraceR, target 0.99"),
-        ("package_w25", "Package, target 0.99, window 0.25"),
-        ("package_w1", "Package, target 0.99, window 1"),
+        ("pyactitrac_w25", "python-ActiTraC, target 0.99, window 0.25"),
+        ("pyactitrac_w1", "python-ActiTraC, target 0.99, window 1"),
     ],
     "Sepsis": [
         ("r_sep_t1", "actitraceR, target 1.00"),
-        ("package_sep_t1_w25", "Package, target 1.00, window 0.25"),
+        ("pyactitrac_sep_t1_w25", "python-ActiTraC, target 1.00, window 0.25"),
         ("r_sep_t99", "actitraceR, target 0.99"),
-        ("package_sep_t99_w25", "Package, target 0.99, window 0.25"),
+        ("pyactitrac_sep_t99_w25", "python-ActiTraC, target 0.99, window 0.25"),
     ],
 }
 REST = ["BPIC13_closedproblems", "BPIC13_incidents", "RTFM", "Hospital_Billing", "BPIC12", "BPIC15"]
@@ -189,25 +189,25 @@ for n in REST:
         for t, tl in TARGETS
         for tool, suffix, label, extra in (
             ("r", "", "actitraceR", ""),
-            ("port", "", "Port of actitraceR", ""),
-            ("package", "_w25", "Package", ", window 0.25"),
-            ("package", "_w1", "Package", ", window 1"),
+            ("replica", "", "actitraceR replica", ""),
+            ("pyactitrac", "_w25", "python-ActiTraC", ", window 0.25"),
+            ("pyactitrac", "_w1", "python-ActiTraC", ", window 1"),
         )
     ]
 scores = {(x["log"], x["tag"], x["seed"]): x for x in score["scores"]}
 for log_name in LOGS:
     d, o = default[log_name], option[log_name]
-    add(log_name, "Whole log", "Published (ProM paper)", "", d["full"]["prom"], show=False)
-    add(log_name, "Whole log", "This run", "", d["full"]["mine"], show=False)
+    add(log_name, "Whole log", "Published", "", d["full"]["prom"], show=False)
+    add(log_name, "Whole log", "Recomputed", "", d["full"]["mine"], show=False)
     for key, group in (("freq", "Frequency mode"), ("dist", "Distance mode")):
-        add(log_name, group, "ProM (published)", d[key]["prom_sizes"], d[key]["prom"])
-        add(log_name, group, "Package default", d[key]["sizes"], d[key]["mine"])
-        add(log_name, group, "Package prom_compatible", o[key]["sizes"], o[key]["mine"])
+        add(log_name, group, "ActiTraC-ProM, published results", d[key]["prom_sizes"], d[key]["prom"])
+        add(log_name, group, "python-ActiTraC · default", d[key]["sizes"], d[key]["mine"])
+        add(log_name, group, "python-ActiTraC · prom_compatible", o[key]["sizes"], o[key]["mine"])
     for tag, impl in TAGS.get(log_name, []):
         for seed in (0, 1):
             x = scores.get((log_name, tag, seed))
-            # The port is shown only where actitraceR has no clusters, since elsewhere they match.
-            if tag.startswith("port_") and (log_name, "r_" + tag[5:], seed) in scores:
+            # The replica is shown only where actitraceR has no clusters, since elsewhere they match.
+            if tag.startswith("replica_") and (log_name, "r_" + tag[8:], seed) in scores:
                 continue
             if x is None:
                 add(log_name, "Inductive Miner setup", impl, run_state(tag, seed), {}, seed, show=False)
@@ -239,11 +239,11 @@ rank_rows = [
         "metric": k,
         "logs": len(ranks["default"][("freq", k)]),
         "freq_default": avg(ranks["default"][("freq", k)], 0),
-        "freq_option": avg(ranks["prom_compatible"][("freq", k)], 0),
-        "freq_prom": avg(ranks["prom_compatible"][("freq", k)], 1),
+        "freq_prom_compatible": avg(ranks["prom_compatible"][("freq", k)], 0),
+        "freq_actitrac_prom": avg(ranks["prom_compatible"][("freq", k)], 1),
         "dist_default": avg(ranks["default"][("dist", k)], 0),
-        "dist_option": avg(ranks["prom_compatible"][("dist", k)], 0),
-        "dist_prom": avg(ranks["prom_compatible"][("dist", k)], 1),
+        "dist_prom_compatible": avg(ranks["prom_compatible"][("dist", k)], 0),
+        "dist_actitrac_prom": avg(ranks["prom_compatible"][("dist", k)], 1),
     }
     for k in METRICS
 ]
@@ -283,20 +283,21 @@ SET += [
 agree = []
 for log, setting, rt, pt, q, one, seeds in SET:
     for seed in seeds:
-        r, p, a, b = lab("r", rt, seed), lab("port", pt, seed), lab("package", q, seed), lab("package", one, seed)
+        r, p = lab("r", rt, seed), lab("replica", pt, seed)
+        a, b = lab("pyactitrac", q, seed), lab("pyactitrac", one, seed)
         agree.append(
             {
                 "run": f"{log} | {setting} | seed {seed}",
                 "log": log,
                 "setting": setting,
                 "seed": seed,
-                "actitraceR": sz(r, "r", rt, seed),
-                "port": sz(p, "port", pt, seed),
-                "ari_port": ari(r, p),
-                "package_w25": sz(a, "package", q, seed),
-                "ari_w25": ari(r, a),
-                "package_w1": sz(b, "package", one, seed),
-                "ari_w1": ari(r, b),
+                "actitracer": sz(r, "r", rt, seed),
+                "replica": sz(p, "replica", pt, seed),
+                "ari_replica": ari(r, p),
+                "pyactitrac_w025": sz(a, "pyactitrac", q, seed),
+                "ari_pyactitrac_w025": ari(r, a),
+                "pyactitrac_w1": sz(b, "pyactitrac", one, seed),
+                "ari_pyactitrac_w1": ari(r, b),
                 "noise": "0" if setting.endswith("noise 0") else "0.2",
             }
         )
@@ -308,11 +309,11 @@ native = [
         "log": NAMES[x["log"]],
         "mode": x["mode"],
         "sizes": ", ".join(map(str, x["sizes"])),
-        "ari": "" if x["ari_against_actitraceR"] is None else f"{x['ari_against_actitraceR']:.3f}",
+        "ari_actitracer": "" if x["ari_against_actitraceR"] is None else f"{x['ari_against_actitraceR']:.3f}",
     }
     for x in score["native"]
 ]
-write("native", native, ["row", "log", "mode", "sizes", "ari"])
+write("native", native, ["row", "log", "mode", "sizes", "ari_actitracer"])
 
 # One difference at a time
 NAMES_C = [
@@ -329,15 +330,16 @@ NAMES_C = [
 causes = []
 for flag, name in NAMES_C:
     for seed in (0, 1, 2, 3):
-        run, base = lab("port", flag, seed), lab("port", "base", seed)
+        # The replica's base run equals actitraceR's clusters on every seed.
+        run, base = lab("replica", flag, seed), lab("replica", "base", seed)
         causes.append(
             {
                 "row": f"{name} | seed {seed}",
                 "change": name,
                 "seed": seed,
                 "sizes": sz(run),
-                "ari": ari(run, base),
-                "ari_package_w1": ari(run, lab("package", "w1", seed)) if flag == "all" else "",
+                "ari_actitracer": ari(run, base),
+                "ari_pyactitrac_w1": ari(run, lab("pyactitrac", "w1", seed)) if flag == "all" else "",
             }
         )
 write("causes", causes, list(causes[0]))
@@ -385,7 +387,7 @@ def span(values, limit):
 RERUN = {f[:-4] for f in os.listdir(f"{ROUT}/timeout_12h")} if os.path.isdir(f"{ROUT}/timeout_12h") else set()
 for log, setting, rt, pt, q, seeds in TIME:
     second = log not in ("Helpdesk", "Sepsis")
-    rerun = any(f"{tool}_{tag}_s{s}" in RERUN for tool, tag in (("r", rt), ("port", pt), ("package", q)) for s in seeds)
+    rerun = any(f"{tool}_{tag}_s{s}" in RERUN for tool, tag in (("r", rt), ("replica", pt), ("pyactitrac", q)) for s in seeds)
     limit = 172800 if rerun else 43200 if second else 10800
     r = [seconds("r", rt, s) for s in seeds]
     times.append(
@@ -394,10 +396,10 @@ for log, setting, rt, pt, q, seeds in TIME:
             "log": log,
             "setting": setting,
             "jobs": "32, rerun 15" if rerun else "32" if second else "16",
-            "r_clustering": span([x[0] for x in r], limit),
-            "r_total": "Not run (evaluation left out)" if second else span([x[1] for x in r], limit),
-            "port": span([seconds("port", pt, s)[0] for s in seeds], limit),
-            "package": span([seconds("package", q, s)[0] for s in seeds], limit),
+            "actitracer_clustering": span([x[0] for x in r], limit),
+            "actitracer_total": "Not run (evaluation left out)" if second else span([x[1] for x in r], limit),
+            "replica": span([seconds("replica", pt, s)[0] for s in seeds], limit),
+            "pyactitrac_w025": span([seconds("pyactitrac", q, s)[0] for s in seeds], limit),
         }
     )
 write("times", times, list(times[0]))
@@ -441,24 +443,24 @@ def rest(tool, n, suffixes):
 
 
 STATUS = {
-    "ProM (published results)": {log_name: "Published" for log_name in LOGS},
-    "ProM emulation (Java, in Docker)": {log_name: "Sizes only" for log_name in LOGS},
-    "Package default": {log_name: "Run" for log_name in LOGS},
-    "Package prom_compatible": {log_name: "Run" for log_name in LOGS},
+    "ActiTraC-ProM, published results": {log_name: "Published" for log_name in LOGS},
+    "ActiTraC-ProM emulation (Java)": {log_name: "Sizes only" for log_name in LOGS},
+    "python-ActiTraC · default": {log_name: "Run" for log_name in LOGS},
+    "python-ActiTraC · prom_compatible": {log_name: "Run" for log_name in LOGS},
     "actitraceR (R)": {
         "Helpdesk": "Run",
         "Sepsis": "Clusters only",
         **{k: v for n in REST for k, v in rest("r", n, [""]).items()},
     },
-    "Port of actitraceR (Python)": {
+    "actitraceR replica (Python)": {
         "Helpdesk": "Run",
         "Sepsis": "Run",
-        **{k: v for n in REST for k, v in rest("port", n, [""]).items()},
+        **{k: v for n in REST for k, v in rest("replica", n, [""]).items()},
     },
-    "Package with actitraceR's miner": {
+    "python-ActiTraC · Inductive Miner setup": {
         "Helpdesk": "Run",
         "Sepsis": "Run",
-        **{k: v for n in REST for k, v in rest("package", n, ["_w25", "_w1"]).items()},
+        **{k: v for n in REST for k, v in rest("pyactitrac", n, ["_w25", "_w1"]).items()},
     },
 }
 write(
@@ -520,7 +522,7 @@ defects = [
         "defect": "An empty cluster stops the run with an error",
         "check": (
             "BPIC13 closed problems at target 1.00 stops in pull(): must select exactly one column. "
-            "The port stops at the same point on it and on BPIC13 incidents"
+            "The replica stops at the same point on it and on BPIC13 incidents"
         )
         if empty_error
         else "Not seen",

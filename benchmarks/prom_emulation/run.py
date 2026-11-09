@@ -1,6 +1,6 @@
-"""Reproduce ProM's published ActiTraC results and test what explains the gap.
+"""ActiTraC-ProM emulation: reproduce its published results and test what explains the gap.
 
-Reimplements ProM's behaviour, including its bugs, in Java, because Java's float
+Reimplements ActiTraC-ProM's behaviour, including its bugs, in Java, because Java's float
 casts, ``HashSet`` and ``java.util.Random`` are part of that behaviour. The result
 matches every cluster size that Peeperkorn et al. published. With ``--flags`` it
 switches one behaviour off, which shows what that behaviour contributes.

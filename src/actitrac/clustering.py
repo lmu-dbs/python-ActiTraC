@@ -54,7 +54,7 @@ def cluster_traces(
 ) -> TraceClustering:
     """Cluster a log by growing each cluster until its model stops fitting.
 
-    Defaults follow the authors' ProM plugin, not actitraceR. See
+    Defaults follow ActiTraC-ProM, the authors' ProM plugin, not actitraceR. See
     docs/fidelity.md for the differences.
 
     Parameters
@@ -70,7 +70,7 @@ def cluster_traces(
         Fraction of the cases still unclustered when a cluster starts. Below
         this size a non-fitting variant is skipped; at or above it the cluster
         stops growing. With ``window_size=0`` the seed does not count towards
-        the size, as in ProM's frequency-based clusterer.
+        the size, as in ActiTraC-ProM's frequency-based clusterer.
     window_size:
         Fraction of remaining variants, most frequent first, eligible for
         selection. ``0`` selects strictly by frequency and computes no distances.
@@ -92,7 +92,7 @@ def cluster_traces(
         Thresholds for the native Heuristics Miner.
     prom_compatible:
         Follow ProM's seeded token choice and compare fitness and sizes as ``float``.
-        This gives ProM's published cluster sizes in frequency mode, and can run
+        This gives ActiTraC-ProM's published cluster sizes in frequency mode, and can run
         slower. Distance mode stays different, because ProM's distance bugs are not
         reproduced. Needs the native miner. See docs/fidelity.md.
     """
@@ -162,12 +162,12 @@ def _grow_cluster(
     def fits(candidate_model, log: list[Variant]) -> bool:
         if not prom_compatible:
             return candidate_model.fitness(log) >= target_fitness
-        # ProM's distance clusterer lists the newest variant first, and replay order
+        # ActiTraC-ProM's distance clusterer lists the newest variant first, and replay order
         # decides the seeded token choices.
         return candidate_model.fits(log if row is None else log[::-1], target_fitness)
 
     if row is None:
-        # ProM's two clusterers differ here. The frequency-based one leaves the
+        # ActiTraC-ProM's two clusterers differ here. The frequency-based one leaves the
         # seed out of the size and never tests it. Reproducing its published
         # results depends on this, because a dominant seed would otherwise end
         # the cluster at the first misfit.
