@@ -201,6 +201,37 @@ pytest
 `tests/test_prom_reference.py` needs the Helpdesk log and is skipped unless
 `ACTITRAC_HELPDESK_CSV` points to it.
 
+## Citation
+
+If you use python-ActiTraC in your work, please cite it:
+
+```bibtex
+@software{schlegel2026pythonactitrac,
+  author  = {Schlegel, Udo},
+  title   = {python-ActiTraC: A Python Implementation of Active Trace Clustering},
+  year    = {2026},
+  version = {0.1.0},
+  url     = {https://github.com/lmu-dbs/python-ActiTraC},
+  license = {MIT}
+}
+```
+
+Please also cite the original ActiTraC paper:
+
+```bibtex
+@article{deweerdt2013actitrac,
+  author  = {De Weerdt, Jochen and vanden Broucke, Seppe and Vanthienen, Jan and Baesens, Bart},
+  title   = {Active Trace Clustering for Improved Process Discovery},
+  journal = {IEEE Transactions on Knowledge and Data Engineering},
+  year    = {2013},
+  doi     = {10.1109/TKDE.2013.64}
+}
+```
+
+## License
+
+MIT, copyright (c) 2026 Udo Schlegel. See [LICENSE](LICENSE).
+
 ## References
 
 - J. De Weerdt, S. vanden Broucke, J. Vanthienen and B. Baesens. Active Trace

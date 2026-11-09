@@ -7,6 +7,7 @@ name = "actitrac"
 version = "0.1.0"
 description = "Python implementation of ActiTraC and ActiTraC-MO: active trace clustering for process discovery"
 readme = "README.md"
+authors = [{ name = "Udo Schlegel" }]
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
 dependencies = ["numpy>=1.24", "pandas>=2.0"]

@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use python-ActiTraC in your work, please cite it as below, and also cite the original ActiTraC paper."
+type: software
+title: "python-ActiTraC: A Python Implementation of Active Trace Clustering"
+authors:
+  - family-names: Schlegel
+    given-names: Udo
+version: 0.1.0
+date-released: 2026-11-09
+license: MIT
+repository-code: "https://github.com/lmu-dbs/python-ActiTraC"
+keywords:
+  - process mining
+  - trace clustering
+  - process discovery
+  - ActiTraC
+references:
+  - type: article
+    title: "Active Trace Clustering for Improved Process Discovery"
+    authors:
+      - family-names: De Weerdt
+        given-names: Jochen
+      - family-names: vanden Broucke
+        given-names: Seppe
+      - family-names: Vanthienen
+        given-names: Jan
+      - family-names: Baesens
+        given-names: Bart
+    journal: "IEEE Transactions on Knowledge and Data Engineering"
+    year: 2013
+    doi: 10.1109/TKDE.2013.64
