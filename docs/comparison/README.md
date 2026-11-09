@@ -5,7 +5,8 @@ port on the eight logs of [Peeperkorn et al.](https://arxiv.org/abs/2506.23776).
 cluster sizes, the paper's metrics, the adjusted Rand index between implementations,
 run times and actitraceR's defects. [fidelity.md](../fidelity.md) explains the results.
 
-Open [comparison.html](comparison.html) in a browser. It needs no server and no network.
+[View the page rendered](https://htmlpreview.github.io/?https://github.com/lmu-dbs/python-ActiTraC/blob/main/docs/comparison/comparison.html), or open [comparison.html](comparison.html) in a
+browser. It needs no server and no network.
 
 | File | What it is |
 | --- | --- |

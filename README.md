@@ -164,8 +164,9 @@ Helpdesk it also gives this package's clusters when all the differences are swit
 `run_docker.sh` and `run_docker_rest.sh` there repeat the comparison in a container.
 
 [docs/comparison/comparison.html](docs/comparison/comparison.html) shows every result of
-both comparisons on one page. It is a standalone file to open in a browser, and
-[docs/comparison/](docs/comparison/) has its data and the scripts that build it.
+both comparisons on one page ([view it rendered](https://htmlpreview.github.io/?https://github.com/lmu-dbs/python-ActiTraC/blob/main/docs/comparison/comparison.html)). It is a standalone file that
+also opens in a browser, and [docs/comparison/](docs/comparison/) has its data and the
+scripts that build it.
 
 pm4py's Inductive Miner with a noise threshold depends on the hash seed and on trace
 order, so set `PYTHONHASHSEED` to repeat a run with it.

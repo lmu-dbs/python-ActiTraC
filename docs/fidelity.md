@@ -16,6 +16,10 @@ The TKDE 2013 and BPI 2016 papers themselves were not available while this was
 written, so nothing here is checked against their text. Where the sources
 disagree, the authors' Java source decides.
 
+All the results below are also on one page:
+[comparison.html, rendered](https://htmlpreview.github.io/?https://github.com/lmu-dbs/python-ActiTraC/blob/main/docs/comparison/comparison.html). Its source and data are in
+[comparison/](comparison/).
+
 ## Validation against ProM
 
 Peeperkorn et al. ran ProM's ActiTraC on eight logs and published the results in
