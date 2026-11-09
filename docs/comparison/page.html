@@ -1,0 +1,427 @@
+<style>
+#dash-root { --ac-gap: var(--cds-gap-md); }
+.ac { display: flex; flex-direction: column; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); }
+.ac h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+.ac h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; text-wrap: balance; }
+.ac h3 { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0; }
+.ac p { margin: 0; max-width: 72ch; }
+.ac .takeaway { color: var(--color-fg-muted); margin-top: var(--cds-gap-xs); }
+.ac .note { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.ac .sec { display: flex; flex-direction: column; gap: var(--cds-gap-md); min-width: 0; }
+.ac .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--ac-gap); }
+.ac .card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-width: 0; }
+.ac .tile-value { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; }
+.ac .tile-value b { font-weight: 400; }
+.ac .tablebox { overflow-x: auto; min-width: 0; }
+.ac table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.ac th { text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: bottom; }
+.ac td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+.ac td.n, .ac th.n { text-align: right; white-space: nowrap; }
+.ac td.sizes { white-space: nowrap; }
+.ac tr.grouphead td { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); padding-top: var(--cds-pad-md); }
+.ac .status-run { color: var(--color-ok); }
+.ac .status-part { color: var(--color-warn); }
+.ac .status-bad { color: var(--color-bad); }
+.ac .status-none { color: var(--color-fg-muted); }
+.ac .logs { display: flex; flex-direction: column; gap: var(--cds-gap-lg); }
+.ac .jump { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); }
+.ac .jump button { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); cursor: pointer; }
+.ac .jump button:hover, .ac .jump button:focus-visible { border-color: var(--color-fg-muted); }
+.ac .facts { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.ac .stacks { position: relative; display: flex; flex-direction: column; gap: var(--cds-gap-xs); }
+.ac .stack-group { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin-top: var(--cds-gap-sm); }
+.ac .stack-row { display: grid; grid-template-columns: minmax(7rem, 16rem) minmax(0, 1fr); gap: var(--cds-gap-sm); align-items: center; font-size: var(--cds-font-size-caption); }
+.ac .stack-bar { display: flex; gap: 2px; height: 16px; min-width: 0; }
+.ac .stack-seg { min-width: 2px; height: 100%; }
+.ac .stack-seg:first-child { border-radius: var(--cds-radius) 0 0 var(--cds-radius); }
+.ac .stack-seg:last-child { border-radius: 0 var(--cds-radius) var(--cds-radius) 0; }
+.ac .stack-seg:hover { outline: 2px solid var(--color-fg); outline-offset: 0; }
+.ac .legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ac .legend span { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+.ac .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.ac .tip { position: absolute; z-index: 5; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; }
+.ac .tip .tip-head { color: var(--cds-text-secondary); }
+.ac .cellbar { display: grid; grid-template-columns: 3.2em minmax(3rem, 1fr); gap: var(--cds-gap-xs); align-items: center; }
+.ac .cellbar i { display: block; height: 8px; border-radius: 2px; min-width: 1px; }
+.ac .cellbar .track { display: block; }
+.ac ul.plain { margin: 0; padding-left: 1.2em; max-width: 72ch; display: flex; flex-direction: column; gap: var(--cds-gap-xs); }
+.ac [data-dash-source-state=refreshing] { opacity: .5; }
+</style>
+
+<div class="ac">
+  <header>
+    <h1>ActiTraC implementation comparison</h1>
+    <p class="takeaway">
+      With <code>prom_compatible</code>, this package's frequency mode gives ProM's cluster sizes on
+      <b data-draw="h-freq-exact" data-source="headline" data-field="freq_exact">—</b> of
+      <b data-draw="h-total" data-source="headline" data-field="logs">—</b> logs. The Python port reproduces actitraceR exactly on all eight logs, and how close actitraceR's clusters come to this package's depends strongly on the log.
+    </p>
+  </header>
+
+  <section class="tiles" id="headlines">
+    <div class="card">
+      <div class="tile-value"><b data-draw="t-freq" data-source="headline" data-field="freq_exact">—</b> of <b data-draw="t-logs" data-source="headline" data-field="logs">—</b></div>
+      <div class="note">Logs where frequency mode with <code>prom_compatible</code> gives ProM's exact sizes.</div>
+    </div>
+    <div class="card">
+      <div class="tile-value"><b data-draw="t-dist" data-source="headline" data-field="dist_exact">—</b> of <b data-draw="t-logs2" data-source="headline" data-field="logs">—</b></div>
+      <div class="note">Logs where distance mode gives ProM's exact sizes, with or without the option.</div>
+    </div>
+    <div class="card">
+      <div class="tile-value"><b data-draw="t-port" data-source="headline" data-field="port_match">—</b> of <b data-draw="t-port-total" data-source="headline" data-field="port_runs">—</b></div>
+      <div class="note">actitraceR runs where the Python port gives every case the same cluster, on the same hash seed.</div>
+    </div>
+    <div class="card">
+      <div class="tile-value"><b data-draw="t-low" data-source="headline" data-field="ari_low">—</b> to <b data-draw="t-high" data-source="headline" data-field="ari_high">—</b></div>
+      <div class="note">Adjusted Rand index (ARI) between actitraceR and this package at noise 0.2, using the same miner. 1 means identical clusters, 0 means chance agreement.</div>
+    </div>
+  </section>
+
+  <section class="sec" id="coverage">
+    <h2>What ran where</h2>
+    <p class="note">ProM itself was never run here: its numbers are the published results of Peeperkorn et al., and the emulation reruns its algorithm in plain Java, in Docker. "Clusters only" means actitraceR's labels were saved before its final evaluation, which needs about 12 hours on Sepsis. "Run, refined" means the log's lifecycle values were changed so actitraceR keeps any events, the same input went to the port and this package, and on BPIC13 empty clusters were dropped instead of stopping with an error. BPIC12 and BPIC15 needed a second batch with a 48-hour limit, after 15 runs reached the 12-hour limit; every run then finished.</p>
+    <div class="card">
+      <div class="tablebox">
+        <table data-source="coverage" data-row-key="implementation">
+          <thead><tr>
+            <th data-field="implementation">Implementation</th>
+            <th data-field="Helpdesk">Helpdesk</th><th data-field="RTFM">RTFM</th>
+            <th data-field="BPIC13 incidents">BPIC13 incidents</th><th data-field="BPIC13 closed problems">BPIC13 closed problems</th>
+            <th data-field="Hospital Billing">Hospital Billing</th><th data-field="Sepsis">Sepsis</th>
+            <th data-field="BPIC12">BPIC12</th><th data-field="BPIC15">BPIC15</th>
+          </tr></thead>
+          <tbody data-draw="coverage"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="gaps">
+    <h2>Cluster size gap to ProM, by log</h2>
+    <p class="note">The share of cases that would have to move for the sizes to match, cluster by cluster. Zero means identical sizes. Bars share one scale.</p>
+    <div class="card">
+      <div class="tablebox">
+        <table data-source="gaps" data-row-key="log">
+          <thead><tr>
+            <th data-field="log">Log</th>
+            <th data-field="freq_default">Frequency, default (%)</th>
+            <th data-field="freq_option">Frequency, <code>prom_compatible</code> (%)</th>
+            <th data-field="dist_default">Distance, default (%)</th>
+            <th data-field="dist_option">Distance, <code>prom_compatible</code> (%)</th>
+          </tr></thead>
+          <tbody data-draw="gaps"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="datasets">
+    <h2>Results on each dataset</h2>
+    <p class="note">Each bar shows how an implementation splits the log, with one segment per cluster in the implementation's own order, so colors match only as far as the cluster order does. Hover a segment for its size. Each table gives every run's sizes and the paper's eight metrics: for precision, fitness and simplicity higher is better, and for ER, graph density and graph entropy lower is better. Metrics are the size-weighted cluster average. Blank alignment metrics were not computed on that log, as in the paper.</p>
+    <div class="jump" aria-label="Jump to a dataset">
+      <button type="button" data-jump="log-Helpdesk">Helpdesk</button>
+      <button type="button" data-jump="log-RTFM">RTFM</button>
+      <button type="button" data-jump="log-BPIC13-incidents">BPIC13 incidents</button>
+      <button type="button" data-jump="log-BPIC13-closed-problems">BPIC13 closed problems</button>
+      <button type="button" data-jump="log-Hospital-Billing">Hospital Billing</button>
+      <button type="button" data-jump="log-Sepsis">Sepsis</button>
+      <button type="button" data-jump="log-BPIC12">BPIC12</button>
+      <button type="button" data-jump="log-BPIC15">BPIC15</button>
+    </div>
+    <div class="logs" data-draw="logs" data-source="logs results"></div>
+  </section>
+
+  <section class="sec" id="ranks">
+    <h2>Average rank among the paper's 12 methods</h2>
+    <p class="note">Lower is better. Each value averages a method's rank over the logs that have the metric. The other 11 methods keep their published values.</p>
+    <div class="card">
+      <div class="tablebox">
+        <table data-source="ranks" data-row-key="metric">
+          <thead><tr>
+            <th data-field="metric">Metric</th><th class="n" data-field="logs">Logs</th>
+            <th class="n" data-field="freq_default">Frequency, default</th><th class="n" data-field="freq_option">Frequency, option</th><th class="n" data-field="freq_prom">Frequency, ProM</th>
+            <th class="n" data-field="dist_default">Distance, default</th><th class="n" data-field="dist_option">Distance, option</th><th class="n" data-field="dist_prom">Distance, ProM</th>
+          </tr></thead>
+          <tbody data-draw="ranks"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="actitracer">
+    <h2>actitraceR, its port and this package, with the same miner</h2>
+    <p class="note">All three use the Inductive Miner, alignments and edit distance. actitraceR and the port match in every run where both finished. This package's window 1 is the closest match to actitraceR, which ignores its window. Hash seeds are fixed, so repeated sizes across seeds are real repeats. "Time limit" means the run reached 3 hours (Helpdesk, Sepsis) without a result. On the other logs every run finished, some only in the rerun with a 48-hour limit.</p>
+    <div class="card">
+      <h3>Every run</h3>
+      <div class="tablebox">
+        <table data-source="agreement" data-row-key="run">
+          <thead><tr>
+            <th data-field="log">Log</th><th data-field="setting">Setting</th><th class="n" data-field="seed">Seed</th>
+            <th data-field="actitraceR">actitraceR</th><th data-field="port">Port</th><th class="n" data-field="ari_port">ARI, port</th>
+            <th data-field="package_w25">Package, window 0.25</th><th class="n" data-field="ari_w25">ARI</th>
+            <th data-field="package_w1">Package, window 1</th><th class="n" data-field="ari_w1">ARI</th>
+          </tr></thead>
+          <tbody data-draw="agreement"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>This package's own miner against actitraceR</h3>
+      <p class="note">This package's defaults (Heuristics Miner, ICS fitness) at target 1.00, against actitraceR at target 1.00 on hash seed 0. These runs differ in miner and fitness as well as in the algorithm's details.</p>
+      <div class="tablebox">
+        <table data-source="native" data-row-key="row">
+          <thead><tr><th data-field="log">Log</th><th data-field="mode">Mode and option</th><th data-field="sizes">Sizes</th><th class="n" data-field="ari">ARI against actitraceR</th></tr></thead>
+          <tbody data-draw="native"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>What causes the gap</h3>
+      <p class="note">Helpdesk, target 0.99. Each row switches one behaviour in the port from actitraceR's to this package's. The last column compares the result with actitraceR on the same seed. With all eight switched, the port gives this package's window 1 clusters exactly.</p>
+      <div class="tablebox">
+        <table data-source="causes" data-row-key="row">
+          <thead><tr><th data-field="change">Change</th><th class="n" data-field="seed">Seed</th><th data-field="sizes">Sizes</th><th data-field="ari">ARI against actitraceR</th><th class="n" data-field="ari_package_w1">ARI against package, window 1</th></tr></thead>
+          <tbody data-draw="causes"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Run time, in seconds</h3>
+      <p class="note">Helpdesk and Sepsis ran 16 jobs at once on 16 CPUs, the other logs 32 on 32. "Rerun 15" marks rows with runs that reached the 12-hour limit and ran again, 15 at once on 16 CPUs with a 48-hour limit, so the load differed. actitraceR's clustering stops where its final evaluation starts, and its total includes that evaluation, which was left out on the other logs. The port and this package leave the evaluation out. On BPIC12 and BPIC15 this package, in actitraceR's configuration, is far slower than the port; the likely cause is that it keeps growing clusters to the minimal size counted at the start and aligns every remaining variant in its look-ahead, but that has not been measured.</p>
+      <div class="tablebox">
+        <table data-source="times" data-row-key="run">
+          <thead><tr><th data-field="log">Log</th><th data-field="setting">Setting</th><th class="n" data-field="jobs">Jobs at once</th><th data-field="r_clustering">actitraceR, clustering</th><th data-field="r_total">actitraceR, total</th><th data-field="port">Port</th><th data-field="package">Package, window 0.25</th></tr></thead>
+          <tbody data-draw="times"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>actitraceR defects, checked in this run</h3>
+      <div class="tablebox">
+        <table data-source="defects" data-row-key="defect">
+          <thead><tr><th data-field="defect">Defect</th><th data-field="check">Result</th></tr></thead>
+          <tbody data-draw="defects"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="extra">
+    <h2>Four more logs, this package only</h2>
+    <p class="note">The ActiTraC page offers these logs but no reference results, so they show behaviour and run time only. They come from an earlier run outside Docker, at <code>k=4</code>. ICS fitness can be negative. The downloaded TSL file has more variants than the page lists, so treat its rows with care.</p>
+    <div class="card">
+      <div class="tablebox">
+        <table data-source="extra" data-row-key="row">
+          <thead><tr><th data-field="log">Log</th><th data-field="mode">Mode</th><th class="n" data-field="seconds">Seconds</th><th data-field="sizes">Sizes</th><th class="n" data-field="weighted_ics">Weighted ICS</th><th class="n" data-field="full_log_ics">Whole log ICS</th></tr></thead>
+          <tbody data-draw="extra"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="reading">
+    <h2>How far to trust these numbers</h2>
+    <ul class="plain">
+      <li>ProM's cluster logs aren't published, so membership against ProM is indirect. ER, graph density and graph entropy depend only on membership.</li>
+      <li>Metrics that use pm4py's Inductive Miner vary between runs on identical clusters, so small differences in them mean little.</li>
+      <li>The rows for ProM and the package's two modes come from the benchmark run with unset hash seeds. The Inductive Miner setup rows were scored afterwards on hash seed 0, with the same pm4py version (2.7.8.4). The seed in those rows is the clustering seed.</li>
+      <li>actitraceR ran on five settings on Helpdesk, two extra windows there, and two settings on Sepsis, and on targets 1.00 and 0.99 on the other six logs. It keeps only events whose lifecycle is exactly <code>complete</code>, so on raw BPIC13 and BPIC12 it finds 0 traces. For those three logs BPIC12's <code>COMPLETE</code> became lower case and every BPIC13 event was marked complete, for all three implementations. On BPIC13, actitraceR's empty clusters were dropped, because they stop it with an error; the original error logs are kept.</li>
+      <li>Of the 72 runs on the six other logs, 15 reached the 12-hour limit, all on BPIC12 and BPIC15. Rerun with a 48-hour limit, all 15 finished, in about 12 to 27 hours. This package on BPIC15 at target 0.99, seed 1, took the longest, about 97,600 s; actitraceR there took 84,797 s.</li>
+      <li>The Inductive Miner setup rows on the other six logs were scored the same way, on all events of the log as in the paper, though actitraceR clustered only the complete events. BPIC12 and BPIC15 skip the alignment metrics, also as in the paper. </li>
+      <li>actitraceR and the port ran on pm4py 2.7.2, the version its wrapper pins. The clusters in each comparison were made on that version.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const rowsOf = (id) => { const d = dash.data(id); return d.status === 'ok' ? d.data : []; };
+
+dash.calc('headline', {
+  title: 'Headline figures',
+  description: 'Counts exact logs from the size gaps, and summarises the agreement between actitraceR, the port and the package at noise 0.2.',
+  inputs: ['gaps', 'agreement'],
+  fn: (gaps, agreement) => {
+    const exact = (key) => gaps.filter((g) => Number(g[key]) === 0).length;
+    const noisy = agreement.filter((a) => String(a.noise) === '0.2');
+    const aris = noisy.flatMap((a) => [a.ari_w25, a.ari_w1]).filter((x) => x !== '' && x != null).map(Number);
+    const compared = agreement.filter((a) => a.ari_port !== '' && a.ari_port != null);
+    return [{
+      logs: gaps.length,
+      freq_exact: exact('freq_option'),
+      dist_exact: Math.min(exact('dist_default'), exact('dist_option')),
+      port_runs: compared.length,
+      port_match: compared.filter((a) => Number(a.ari_port) === 1).length,
+      ari_low: Math.min(...aris).toFixed(3),
+      ari_high: Math.max(...aris).toFixed(3),
+    }];
+  },
+});
+
+const one = (name, field) => dash.draw(name, (el) => {
+  const rows = rowsOf('headline');
+  el.textContent = rows.length ? rows[0][field] : '—';
+});
+one('h-freq-exact', 'freq_exact'); one('h-total', 'logs'); one('t-freq', 'freq_exact'); one('t-logs', 'logs');
+one('t-dist', 'dist_exact'); one('t-logs2', 'logs'); one('t-port', 'port_match'); one('t-port-total', 'port_runs');
+one('t-low', 'ari_low'); one('t-high', 'ari_high');
+
+const cell = (tr, text, cls) => { const td = document.createElement('td'); td.textContent = text == null ? '' : text; if (cls) td.className = cls; tr.append(td); return td; };
+const simple = (name, id, key, spec) => dash.draw(name, (tbody) => {
+  tbody.replaceChildren(...rowsOf(id).map((r) => {
+    const tr = document.createElement('tr');
+    tr.dataset.key = r[key];
+    spec.forEach(([field, cls]) => cell(tr, r[field], cls));
+    return tr;
+  }));
+});
+
+const STATUS = { Run: 'status-run', 'Run, refined': 'status-run', Published: 'status-run', 'Sizes only': 'status-part', 'Clusters only': 'status-part', 'Partly run': 'status-part', 'Partly run, refined': 'status-part','Time limit': 'status-bad', Error: 'status-bad', 'Not run': 'status-none' };
+const LOGNAMES = ['Helpdesk', 'RTFM', 'BPIC13 incidents', 'BPIC13 closed problems', 'Hospital Billing', 'Sepsis', 'BPIC12', 'BPIC15'];
+dash.draw('coverage', (tbody) => {
+  tbody.replaceChildren(...rowsOf('coverage').map((r) => {
+    const tr = document.createElement('tr');
+    cell(tr, r.implementation);
+    LOGNAMES.forEach((n) => cell(tr, r[n], STATUS[r[n]]));
+    return tr;
+  }));
+});
+
+dash.draw('gaps', (tbody) => {
+  const rows = rowsOf('gaps');
+  const keys = ['freq_default', 'freq_option', 'dist_default', 'dist_option'];
+  const top = Math.max(1, ...rows.flatMap((r) => keys.map((k) => Number(r[k]))));
+  tbody.replaceChildren(...rows.map((r) => {
+    const tr = document.createElement('tr');
+    cell(tr, r.log);
+    keys.forEach((k) => {
+      const td = document.createElement('td');
+      const box = document.createElement('div'); box.className = 'cellbar';
+      const label = document.createElement('span'); label.textContent = r[k];
+      const track = document.createElement('span'); track.className = 'track';
+      const bar = document.createElement('i');
+      bar.style.width = `${Number(r[k]) / top * 100}%`;
+      bar.style.background = Number(r[k]) === 0 ? 'transparent' : dash.colors[0];
+      track.append(bar); box.append(label, track); td.append(box); tr.append(td);
+    });
+    return tr;
+  }));
+});
+
+const METRICS = [['replay_fitness', 'Replay fitness'], ['replay_precision', 'Replay precision'], ['align_fitness', 'Alignment fitness'], ['align_precision', 'Alignment precision'], ['simplicity', 'Simplicity'], ['ER', 'ER'], ['graph_density', 'Graph density'], ['graph_entropy', 'Graph entropy']];
+const slug = (s) => 'log-' + String(s).replace(/[^A-Za-z0-9]+/g, '-');
+const fmt = d3.format(',');
+
+dash.draw('logs', (root) => {
+  const logs = rowsOf('logs'), results = rowsOf('results');
+  if (!logs.length || !results.length) { root.textContent = '—'; return; }
+  root.replaceChildren(...logs.map((log) => {
+    const mine = results.filter((r) => r.log === log.log);
+    const card = document.createElement('article');
+    card.className = 'card'; card.id = slug(log.log);
+    const h = document.createElement('h3'); h.textContent = log.log; card.append(h);
+    const facts = document.createElement('div'); facts.className = 'facts';
+    const parts = [`${fmt(Number(log.cases))} cases`, `${fmt(Number(log.events))} events`, `${fmt(Number(log.variants))} activity variants`, `${log.activities} activities`, `k = ${log.k}`];
+    parts.push(log.lifecycle);
+    facts.textContent = parts.join(' · '); card.append(facts);
+
+    const charted = mine.filter((r) => r.chart === 'yes' && r.sizes);
+    const clusterCount = Math.max(...charted.map((r) => String(r.sizes).split(',').length));
+    const legend = document.createElement('div'); legend.className = 'legend';
+    for (let i = 0; i < clusterCount; i++) {
+      const s = document.createElement('span'); const sw = document.createElement('i');
+      sw.className = 'swatch'; sw.style.background = dash.colors[i];
+      s.append(sw, document.createTextNode(`Cluster ${i + 1}`)); legend.append(s);
+    }
+    card.append(legend);
+
+    const stacks = document.createElement('div'); stacks.className = 'stacks';
+    const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true;
+    let group = null;
+    charted.forEach((r) => {
+      if (r.group !== group) {
+        group = r.group;
+        const g = document.createElement('div'); g.className = 'stack-group';
+        g.textContent = r.group === 'Inductive Miner setup' ? 'Inductive Miner setup, hash seed 0' : r.group; stacks.append(g);
+      }
+      const row = document.createElement('div'); row.className = 'stack-row';
+      const label = document.createElement('div'); label.textContent = r.implementation;
+      const bar = document.createElement('div'); bar.className = 'stack-bar';
+      const sizes = String(r.sizes).split(',').map((x) => Number(x.trim()));
+      const total = d3.sum(sizes);
+      sizes.forEach((n, i) => {
+        const seg = document.createElement('div'); seg.className = 'stack-seg';
+        seg.style.flex = `${n} 1 0`; seg.style.background = dash.colors[i];
+        seg.tabIndex = 0;
+        seg.setAttribute('aria-label', `${r.implementation}, cluster ${i + 1}: ${fmt(n)} cases`);
+        const show = () => {
+          const head = document.createElement('div'); head.className = 'tip-head'; head.textContent = r.implementation;
+          const body = document.createElement('div'); body.textContent = `Cluster ${i + 1}: ${fmt(n)} cases (${d3.format('.1%')(n / total)})`;
+          tip.replaceChildren(head, body); tip.hidden = false;
+          const box = stacks.getBoundingClientRect(), s = seg.getBoundingClientRect();
+          tip.style.top = `${s.bottom - box.top + 4}px`;
+          const w = tip.getBoundingClientRect().width;
+          tip.style.left = `${Math.max(0, Math.min(box.width - w, s.left - box.left))}px`;
+        };
+        const hide = () => { tip.hidden = true; };
+        seg.addEventListener('mouseenter', show); seg.addEventListener('mouseleave', hide);
+        seg.addEventListener('focus', show); seg.addEventListener('blur', hide);
+        bar.append(seg);
+      });
+      row.append(label, bar); stacks.append(row);
+    });
+    stacks.append(tip); card.append(stacks);
+
+    const box = document.createElement('div'); box.className = 'tablebox';
+    const table = document.createElement('table');
+    table.dataset.source = 'results'; table.dataset.rowKey = 'row';
+    const thead = document.createElement('thead'), htr = document.createElement('tr');
+    const th = (field, text, cls) => { const e = document.createElement('th'); e.dataset.field = field; e.textContent = text; if (cls) e.className = cls; htr.append(e); };
+    th('implementation', 'Implementation'); th('seed', 'Seed', 'n'); th('sizes', 'Sizes');
+    METRICS.forEach(([f, t]) => th(f, t, 'n'));
+    thead.append(htr); table.append(thead);
+    const tbody = document.createElement('tbody');
+    let last = null;
+    mine.forEach((r) => {
+      if (r.group !== last) {
+        last = r.group;
+        const gr = document.createElement('tr'); gr.className = 'grouphead';
+        const td = document.createElement('td'); td.colSpan = 3 + METRICS.length; td.textContent = r.group;
+        gr.append(td); tbody.append(gr);
+      }
+      const tr = document.createElement('tr'); tr.dataset.key = r.row;
+      cell(tr, r.implementation); cell(tr, r.seed, 'n'); cell(tr, r.sizes, 'sizes');
+      METRICS.forEach(([f]) => cell(tr, r[f], 'n'));
+      tbody.append(tr);
+    });
+    table.append(tbody); box.append(table); card.append(box);
+    return card;
+  }));
+});
+
+simple('ranks', 'ranks', 'metric', [['metric'], ['logs', 'n'], ['freq_default', 'n'], ['freq_option', 'n'], ['freq_prom', 'n'], ['dist_default', 'n'], ['dist_option', 'n'], ['dist_prom', 'n']]);
+simple('agreement', 'agreement', 'run', [['log'], ['setting'], ['seed', 'n'], ['actitraceR', 'sizes'], ['port', 'sizes'], ['ari_port', 'n'], ['package_w25', 'sizes'], ['ari_w25', 'n'], ['package_w1', 'sizes'], ['ari_w1', 'n']]);
+simple('native', 'native', 'row', [['log'], ['mode'], ['sizes', 'sizes'], ['ari', 'n']]);
+simple('times', 'times', 'run', [['log'], ['setting'], ['jobs', 'n'], ['r_clustering'], ['r_total'], ['port'], ['package']]);
+simple('defects', 'defects', 'defect', [['defect'], ['check']]);
+simple('extra', 'extra', 'row', [['log'], ['mode'], ['seconds', 'n'], ['sizes', 'sizes'], ['weighted_ics', 'n'], ['full_log_ics', 'n']]);
+
+dash.draw('causes', (tbody) => {
+  tbody.replaceChildren(...rowsOf('causes').map((r) => {
+    const tr = document.createElement('tr'); tr.dataset.key = r.row;
+    cell(tr, r.change); cell(tr, r.seed, 'n'); cell(tr, r.sizes, 'sizes');
+    const td = document.createElement('td');
+    const box = document.createElement('div'); box.className = 'cellbar';
+    const label = document.createElement('span'); label.textContent = r.ari;
+    const track = document.createElement('span'); track.className = 'track';
+    const bar = document.createElement('i'); bar.style.width = `${Number(r.ari) * 100}%`; bar.style.background = dash.colors[0];
+    track.append(bar); box.append(label, track); td.append(box); tr.append(td);
+    cell(tr, r.ari_package_w1, 'n');
+    return tr;
+  }));
+});
+
+document.querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => {
+  const el = document.getElementById(b.dataset.jump);
+  if (el) { el.scrollIntoView(); dash.setLink(el.id); }
+}));
+</script>

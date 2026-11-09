@@ -1,0 +1,9 @@
+log,k,cases,events,variants,activities,lifecycle
+Helpdesk,4,4580,21348,226,14,no lifecycle column
+RTFM,4,150370,561470,231,11,all events marked complete
+BPIC13 incidents,5,7554,65533,1511,4,no events marked complete
+BPIC13 closed problems,5,1487,6660,183,4,no events marked complete
+Hospital Billing,5,100000,451359,1020,18,all events marked complete
+Sepsis,6,1050,15214,846,16,all events marked complete
+BPIC12,4,13087,262200,4366,24,"no events marked complete; 164,506 marked COMPLETE"
+BPIC15,4,5649,92426,2502,29,first municipality's log has lifecycle complete on all events

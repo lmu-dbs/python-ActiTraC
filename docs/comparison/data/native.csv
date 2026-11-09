@@ -1,0 +1,33 @@
+row,log,mode,sizes,ari
+"Helpdesk | frequency, default",Helpdesk,"frequency, default","3824, 412, 246, 98",0.141
+"Helpdesk | frequency, prom_compatible",Helpdesk,"frequency, prom_compatible","3828, 408, 246, 98",0.139
+"Helpdesk | distance, default",Helpdesk,"distance, default","2949, 883, 500, 248",0.641
+"Helpdesk | distance, prom_compatible",Helpdesk,"distance, prom_compatible","2949, 883, 500, 248",0.641
+"Sepsis | frequency, default",Sepsis,"frequency, default","72, 633, 185, 62, 40, 58",0.060
+"Sepsis | frequency, prom_compatible",Sepsis,"frequency, prom_compatible","72, 609, 208, 62, 41, 58",0.057
+"Sepsis | distance, default",Sepsis,"distance, default","57, 651, 182, 63, 39, 58",0.061
+"Sepsis | distance, prom_compatible",Sepsis,"distance, prom_compatible","57, 627, 205, 63, 40, 58",0.058
+"BPIC13_closedproblems | frequency, default",BPIC13 closed problems,"frequency, default","884, 153, 208, 175, 67",0.332
+"BPIC13_closedproblems | frequency, prom_compatible",BPIC13 closed problems,"frequency, prom_compatible","884, 153, 208, 175, 67",0.332
+"BPIC13_closedproblems | distance, default",BPIC13 closed problems,"distance, default","575, 175, 351, 206, 180",0.262
+"BPIC13_closedproblems | distance, prom_compatible",BPIC13 closed problems,"distance, prom_compatible","575, 175, 351, 206, 180",0.262
+"BPIC13_incidents | frequency, default",BPIC13 incidents,"frequency, default","1893, 2175, 352, 2784, 350",0.332
+"BPIC13_incidents | frequency, prom_compatible",BPIC13 incidents,"frequency, prom_compatible","1893, 2179, 352, 2780, 350",0.332
+"BPIC13_incidents | distance, default",BPIC13 incidents,"distance, default","1900, 2083, 352, 2848, 371",0.356
+"BPIC13_incidents | distance, prom_compatible",BPIC13 incidents,"distance, prom_compatible","1900, 2083, 352, 2848, 371",0.356
+"RTFM | frequency, default",RTFM,"frequency, default","62426, 63263, 20897, 3784",0.447
+"RTFM | frequency, prom_compatible",RTFM,"frequency, prom_compatible","59928, 65881, 20777, 3784",0.445
+"RTFM | distance, default",RTFM,"distance, default","62316, 49883, 20627, 17544",0.574
+"RTFM | distance, prom_compatible",RTFM,"distance, prom_compatible","62316, 49883, 20627, 17544",0.574
+"Hospital_Billing | frequency, default",Hospital Billing,"frequency, default","62599, 22453, 10718, 3638, 592",0.533
+"Hospital_Billing | frequency, prom_compatible",Hospital Billing,"frequency, prom_compatible","63002, 22453, 10304, 3638, 603",0.534
+"Hospital_Billing | distance, default",Hospital Billing,"distance, default","41471, 22468, 22668, 9710, 3683",0.888
+"Hospital_Billing | distance, prom_compatible",Hospital Billing,"distance, prom_compatible","41391, 22457, 22632, 9841, 3679",0.886
+"BPIC12 | frequency, default",BPIC12,"frequency, default","4224, 1965, 722, 6176",0.309
+"BPIC12 | frequency, prom_compatible",BPIC12,"frequency, prom_compatible","8466, 2325, 596, 1700",0.151
+"BPIC12 | distance, default",BPIC12,"distance, default","4224, 1965, 722, 6176",0.309
+"BPIC12 | distance, prom_compatible",BPIC12,"distance, prom_compatible","4224, 1965, 722, 6176",0.309
+"BPIC15 | frequency, default",BPIC15,"frequency, default","2872, 1014, 1065, 698",0.024
+"BPIC15 | frequency, prom_compatible",BPIC15,"frequency, prom_compatible","3012, 989, 1060, 588",0.020
+"BPIC15 | distance, default",BPIC15,"distance, default","3064, 1312, 393, 880",0.110
+"BPIC15 | distance, prom_compatible",BPIC15,"distance, prom_compatible","3010, 1403, 364, 872",0.141

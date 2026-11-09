@@ -1,0 +1,9 @@
+log,freq_default,freq_option,dist_default,dist_option,freq_default_s,freq_option_s,dist_default_s,dist_option_s
+Helpdesk,0.1,0.0,4.0,4.0,0.3,4.0,0.2,0.1
+RTFM,1.7,0.0,2.1,2.1,1.2,2.1,1.1,1.1
+BPIC13 incidents,0.1,0.0,0.4,0.4,3.2,2.8,4.7,4.2
+BPIC13 closed problems,0.0,0.0,0.0,0.0,0.3,0.2,0.2,0.2
+Hospital Billing,0.4,0.0,22.2,22.3,2.4,2.6,4.3,3.7
+Sepsis,2.3,0.0,10.3,8.3,1.6,1.9,3.9,3.8
+BPIC12,35.2,0.0,0.0,0.0,13.8,18.6,32.9,32.4
+BPIC15,2.5,0.0,28.2,27.1,92.0,100.4,77.2,29.0

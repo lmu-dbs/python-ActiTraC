@@ -1,0 +1,9 @@
+metric,logs,freq_default,freq_option,freq_prom,dist_default,dist_option,dist_prom
+replay_fitness,8,7.12,7.62,7.62,8.25,8.75,7.88
+replay_precision,8,8.12,8.25,8.25,6.75,6.00,5.75
+align_fitness,6,6.00,6.83,6.83,7.67,8.00,5.50
+align_precision,6,7.00,7.33,7.33,6.83,5.83,6.00
+simplicity,8,9.25,8.38,8.50,6.38,5.50,6.62
+ER,8,8.88,8.50,8.50,8.00,8.00,7.88
+graph_density,8,8.88,8.38,8.38,8.62,8.50,8.62
+graph_entropy,8,8.62,8.75,8.75,7.12,6.88,7.38

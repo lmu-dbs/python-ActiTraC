@@ -1,0 +1,9 @@
+row,log,mode,seconds,sizes,weighted_ics,full_log_ics
+MCRM | frequency,MCRM,frequency,0.5,"742, 143, 24, 47",0.292,-0.128
+MCRM | distance,MCRM,distance,0.5,"462, 210, 237, 47",0.714,-0.128
+KIM | frequency,KIM,frequency,2.8,"18962, 3171, 1343, 1294",0.837,0.791
+KIM | distance,KIM,distance,6.4,"14201, 4061, 2519, 3989",0.831,0.791
+TSL | frequency,TSL,frequency,1.0,"9583, 7660, 308, 261",-1.170,-1.414
+TSL | distance,TSL,distance,26.5,"8494, 5865, 2148, 1305",-1.149,-1.414
+ICP | frequency,ICP,frequency,12.7,"9047, 2412, 314, 618",-0.515,-0.776
+ICP | distance,ICP,distance,16.7,"5425, 2755, 2907, 1304",0.372,-0.776

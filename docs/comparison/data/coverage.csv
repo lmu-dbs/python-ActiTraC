@@ -1,0 +1,8 @@
+implementation,Helpdesk,RTFM,BPIC13 incidents,BPIC13 closed problems,Hospital Billing,Sepsis,BPIC12,BPIC15
+ProM (published results),Published,Published,Published,Published,Published,Published,Published,Published
+"ProM emulation (Java, in Docker)",Sizes only,Sizes only,Sizes only,Sizes only,Sizes only,Sizes only,Sizes only,Sizes only
+Package default,Run,Run,Run,Run,Run,Run,Run,Run
+Package prom_compatible,Run,Run,Run,Run,Run,Run,Run,Run
+actitraceR (R),Run,Run,"Run, refined","Run, refined",Run,Clusters only,"Run, refined",Run
+Port of actitraceR (Python),Run,Run,"Run, refined","Run, refined",Run,Run,"Run, refined",Run
+Package with actitraceR's miner,Run,Run,"Run, refined","Run, refined",Run,Run,"Run, refined",Run

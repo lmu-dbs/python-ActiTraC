@@ -1,0 +1,19 @@
+run,log,setting,jobs,r_clustering,r_total,port,package
+"Helpdesk | Target 0.99, mcs 0.25",Helpdesk,"Target 0.99, mcs 0.25",16,122 to 124,144 to 148,9 to 10,8
+"Helpdesk | Target 0.95, mcs 0.25",Helpdesk,"Target 0.95, mcs 0.25",16,80 to 82,97 to 98,18 to 19,19 to 20
+"Helpdesk | Target 0.99, mcs 0.60",Helpdesk,"Target 0.99, mcs 0.60",16,130 to 142,146 to 158,20,22 to 23
+"Helpdesk | Target 1.00, mcs 0.25",Helpdesk,"Target 1.00, mcs 0.25",16,212 to 215,227 to 231,12 to 13,6 to 7
+"Sepsis | Target 0.99, mcs 0.25",Sepsis,"Target 0.99, mcs 0.25",16,1750 to 2264,Unfinished at 10800,1264 to 1611,718 to 755
+"Sepsis | Target 1.00, mcs 0.25",Sepsis,"Target 1.00, mcs 0.25",16,1377 to 1396,Unfinished at 10800,192 to 194,1210 to 1239
+"BPIC13 closed problems | Target 1.00, mcs 0.25",BPIC13 closed problems,"Target 1.00, mcs 0.25",32,147,Not run (evaluation left out),10,3
+"BPIC13 closed problems | Target 0.99, mcs 0.25",BPIC13 closed problems,"Target 0.99, mcs 0.25",32,39,Not run (evaluation left out),5,13
+"BPIC13 incidents | Target 1.00, mcs 0.25",BPIC13 incidents,"Target 1.00, mcs 0.25",32,3340 to 3494,Not run (evaluation left out),181 to 184,157 to 167
+"BPIC13 incidents | Target 0.99, mcs 0.25",BPIC13 incidents,"Target 0.99, mcs 0.25",32,375 to 376,Not run (evaluation left out),49,75 to 92
+"RTFM | Target 1.00, mcs 0.25",RTFM,"Target 1.00, mcs 0.25",32,4633 to 4638,Not run (evaluation left out),49 to 57,7
+"RTFM | Target 0.99, mcs 0.25",RTFM,"Target 0.99, mcs 0.25",32,3907 to 3916,Not run (evaluation left out),29 to 36,8
+"Hospital Billing | Target 1.00, mcs 0.25",Hospital Billing,"Target 1.00, mcs 0.25",32,18677 to 18731,Not run (evaluation left out),126 to 155,1359 to 3198
+"Hospital Billing | Target 0.99, mcs 0.25",Hospital Billing,"Target 0.99, mcs 0.25",32,14662 to 14948,Not run (evaluation left out),430 to 457,296 to 299
+"BPIC12 | Target 1.00, mcs 0.25",BPIC12,"Target 1.00, mcs 0.25","32, rerun 15",19910 to 20180,Not run (evaluation left out),1784 to 1786,42249 to 43036
+"BPIC12 | Target 0.99, mcs 0.25",BPIC12,"Target 0.99, mcs 0.25","32, rerun 15",49966 to 56688,Not run (evaluation left out),19942 to 22468,20695 to 50372
+"BPIC15 | Target 1.00, mcs 0.25",BPIC15,"Target 1.00, mcs 0.25",32,6629 to 7071,Not run (evaluation left out),621 to 637,22794 to 23128
+"BPIC15 | Target 0.99, mcs 0.25",BPIC15,"Target 0.99, mcs 0.25","32, rerun 15",44042 to 84797,Not run (evaluation left out),35482 to 67102,47596 to 96923
