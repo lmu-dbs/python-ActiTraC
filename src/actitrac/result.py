@@ -44,6 +44,7 @@ class TraceClustering:
     clusters: list[Cluster]
     log: VariantLog
     miner: Callable
+    f_score_beta: float = 1.0
 
     def __len__(self) -> int:
         return len(self.clusters)
@@ -86,12 +87,18 @@ class TraceClustering:
     def select_cluster(self, cluster_id: int) -> pd.DataFrame:
         if not 0 <= cluster_id < len(self.clusters):
             raise IndexError(f"there are only {len(self.clusters)} clusters")
-        return self.logs()[cluster_id]
+        source = self._source()
+        return source[source[self.log.case_key].isin(self.clusters[cluster_id].case_ids)]
 
     def group_by_cluster(self):
         return self.augment().groupby("cluster")
 
-    def metrics(self, conformance: bool = False, alignments: bool = False) -> pd.DataFrame:
+    def metrics(
+        self,
+        conformance: bool = False,
+        alignments: bool = False,
+        beta: float | None = None,
+    ) -> pd.DataFrame:
         """Evaluate each cluster, the case-weighted average, and the unclustered log.
 
         Every row uses a model mined on all of that row's variants, including
@@ -100,8 +107,9 @@ class TraceClustering:
         precision, F-score and connectivity; ``alignments`` adds alignment
         fitness and precision, which can be slow and are NaN for an unsound net.
         """
+        score_beta = self.f_score_beta if beta is None else beta
         rows = [
-            {"cluster": c.id, **self._evaluate(c.variants, conformance, alignments)}
+            {"cluster": c.id, **self._evaluate(c.variants, conformance, alignments, score_beta)}
             for c in self.clusters
         ]
         frame = pd.DataFrame(rows)
@@ -115,11 +123,13 @@ class TraceClustering:
         )
         full = {
             "cluster": "full_log",
-            **self._evaluate(list(self.log.variants), conformance, alignments),
+            **self._evaluate(list(self.log.variants), conformance, alignments, score_beta),
         }
         return pd.concat([frame, pd.DataFrame([average, full])], ignore_index=True)
 
-    def _evaluate(self, variants: list[Variant], conformance: bool, alignments: bool) -> dict:
+    def _evaluate(
+        self, variants: list[Variant], conformance: bool, alignments: bool, beta: float
+    ) -> dict:
         from .heuristics import HeuristicsNet
 
         model = self.miner(variants)
@@ -140,7 +150,7 @@ class TraceClustering:
                 row.update(
                     replay_fitness=recall,
                     replay_precision=precision,
-                    f_score=petri.f_score(precision, recall),
+                    f_score=petri.f_score(precision, recall, beta),
                     pt_connectivity=petri.pt_connectivity(net),
                 )
             if alignments:
@@ -148,7 +158,9 @@ class TraceClustering:
                 sound = petri.is_easy_sound(net, initial, final)
                 row.update(
                     align_fitness=(
-                        petri.alignment_fitness(variants, net, initial, final)
+                        petri.alignment_fitness(
+                            variants, net, initial, final, check_soundness=False
+                        )
                         if sound
                         else float("nan")
                     ),

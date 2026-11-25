@@ -63,7 +63,8 @@ def cluster_traces(
         A DataFrame, pm4py EventLog or ``{activity_tuple: count}`` dict.
     number_of_clusters:
         Total number of clusters, including the residual cluster when
-        ``cluster_remaining_traces`` is true.
+        ``cluster_remaining_traces`` is true. Must be at least 2 when
+        ``cluster_remaining_traces`` is true and ``stop_percentage`` is not set.
     target_fitness:
         Fitness a cluster's model must keep while it grows.
     minimal_cluster_size:
@@ -98,8 +99,17 @@ def cluster_traces(
     """
     if number_of_clusters < 1:
         raise ValueError("number_of_clusters must be at least 1")
+    if cluster_remaining_traces and stop_percentage is None and number_of_clusters < 2:
+        raise ValueError(
+            "number_of_clusters must be at least 2 when cluster_remaining_traces is true, "
+            "because one of the clusters is the residual cluster"
+        )
+    if not 0 <= minimal_cluster_size <= 1:
+        raise ValueError("minimal_cluster_size must be between 0 and 1")
     if not 0 <= window_size <= 1:
         raise ValueError("window_size must be between 0 and 1")
+    if stop_percentage is not None and not 0 < stop_percentage <= 100:
+        raise ValueError("stop_percentage must be in (0, 100]")
 
     if prom_compatible:
         if discover_algorithm is not None:
@@ -121,7 +131,7 @@ def cluster_traces(
     clustered_cases = 0
     regular_clusters = number_of_clusters - 1 if cluster_remaining_traces else number_of_clusters
 
-    while remaining:
+    while remaining and (stop_percentage is not None or len(clusters) < regular_clusters):
         cluster = _grow_cluster(
             len(clusters), variants, remaining, miner, row,
             target_fitness, minimal_cluster_size, window_size, prom_compatible,
@@ -130,10 +140,7 @@ def cluster_traces(
         clustered_cases += cluster.n_cases
         logger.info("cluster %d: %d cases, %d left",
                     cluster.id, cluster.n_cases, total_cases - clustered_cases)
-        if stop_percentage is not None:
-            if clustered_cases / total_cases * 100 >= stop_percentage:
-                break
-        elif len(clusters) >= regular_clusters:
+        if stop_percentage is not None and clustered_cases / total_cases * 100 >= stop_percentage:
             break
 
     _resolve_residuals(clusters, variants, remaining, miner, cluster_remaining_traces)

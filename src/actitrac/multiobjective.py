@@ -72,10 +72,18 @@ def cluster_traces_mo(
         to the cluster that scores it best (false).
     seed:
         Seed for the random choice of initial variants.
+    fitness_metric:
+        ``"token_replay"`` (token-based fitness + ETConformance precision, the
+        default) or ``"alignments"`` (alignment fitness + alignment precision;
+        unsound models score 0).
     """
     petri._require_pm4py()
     if number_of_clusters < 1:
         raise ValueError("number_of_clusters must be at least 1")
+    if beta < 0:
+        raise ValueError("beta must be non-negative")
+    if fitness_metric not in ("token_replay", "alignments"):
+        raise ValueError("fitness_metric must be 'alignments' or 'token_replay'")
 
     variant_log = extract_variants(
         log, case_key, activity_key, timestamp_key, lifecycle_key, lifecycle
@@ -89,12 +97,20 @@ def cluster_traces_mo(
     def evaluate(variants: list[Variant], newcomer: Variant) -> _Candidate:
         model = miner(variants)
         net, initial, final = model.to_petri_net()
-        score = _f_score(variants, net, initial, final, beta, minimal_correctness)
-        trace_score = (
-            _f_score([newcomer], net, initial, final, beta, minimal_trace_correctness)
-            if score >= minimal_correctness
-            else 0.0
+        if fitness_metric == "alignments" and not petri.is_easy_sound(net, initial, final):
+            petri.warn_unsound()
+            return _Candidate(model, variants, 0.0, 0.0, petri.pt_connectivity(net))
+        score = _f_score(
+            variants, net, initial, final, beta, minimal_correctness, fitness_metric
         )
+        if len(variants) == 1 and variants[0] is newcomer:
+            trace_score = score
+        elif score >= minimal_correctness:
+            trace_score = _f_score(
+                [newcomer], net, initial, final, beta, minimal_trace_correctness, fitness_metric
+            )
+        else:
+            trace_score = 0.0
         return _Candidate(model, variants, score, trace_score, petri.pt_connectivity(net))
 
     def acceptable(candidate: _Candidate) -> bool:
@@ -131,11 +147,21 @@ def cluster_traces_mo(
             Cluster(len(clusters), unassigned, miner(unassigned), is_residual=True)
         )
     elif unassigned:
+        petri_nets = [c.model.to_petri_net() for c in clusters]
+        sound = [
+            True if fitness_metric != "alignments" else petri.is_easy_sound(*pn)
+            for pn in petri_nets
+        ]
         for variant in unassigned:
-            best = max(clusters, key=lambda c: _residual_rank(c, groups, variant, beta))
+            best = max(
+                clusters,
+                key=lambda c: _residual_rank(
+                    c, petri_nets[c.id], sound[c.id], groups, variant, beta, fitness_metric
+                ),
+            )
             best.external.append(variant)
 
-    return TraceClustering(clusters, variant_log, miner)
+    return TraceClustering(clusters, variant_log, miner, f_score_beta=beta)
 
 
 def _seed_clusters(
@@ -171,20 +197,42 @@ def _seed_clusters(
 
 
 def _f_score(
-    variants: Sequence[Variant], net, initial, final, beta: float, floor: float = 0.0
+    variants: Sequence[Variant],
+    net,
+    initial,
+    final,
+    beta: float,
+    floor: float = 0.0,
+    fitness_metric: str = "token_replay",
 ) -> float:
     """F-score, or an upper bound below ``floor`` when precision cannot rescue it."""
-    recall = petri.token_fitness(variants, net, initial, final)
+    if fitness_metric == "alignments":
+        recall = petri.alignment_fitness(variants, net, initial, final, check_soundness=False)
+    else:
+        recall = petri.token_fitness(variants, net, initial, final)
     best_possible = petri.f_score(1.0, recall, beta)
     if best_possible < floor:
         return best_possible
-    precision = petri.etc_precision(variants, net, initial, final)
+    if fitness_metric == "alignments":
+        precision = petri.alignment_precision(variants, net, initial, final)
+    else:
+        precision = petri.etc_precision(variants, net, initial, final)
     return petri.f_score(precision, recall, beta)
 
 
-def _residual_rank(cluster: Cluster, groups: list[_Candidate], variant: Variant, beta: float):
-    net, initial, final = cluster.model.to_petri_net()
+def _residual_rank(
+    cluster: Cluster,
+    petri_net: tuple,
+    is_sound: bool,
+    groups: list[_Candidate],
+    variant: Variant,
+    beta: float,
+    fitness_metric: str = "token_replay",
+):
+    if not is_sound:
+        return 0.0, groups[cluster.id].score
+    net, initial, final = petri_net
     return (
-        _f_score([variant], net, initial, final, beta),
+        _f_score([variant], net, initial, final, beta, fitness_metric=fitness_metric),
         groups[cluster.id].score,
     )

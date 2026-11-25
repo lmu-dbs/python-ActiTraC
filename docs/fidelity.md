@@ -472,6 +472,27 @@ With correct fitness, the Inductive Miner at noise 0 fits everything, so one clu
 takes the whole log. `discover_algorithm` therefore needs a noise threshold to be
 useful here.
 
+### Re-run after the fixes (2026-11-24)
+
+All implementations were re-run after the bug fixes in a fresh Docker volume (`actitrac-rerun`),
+leaving the original baseline (`actitrac-data`) untouched:
+
+- **Images and versions:** `actitrac-bench` (Python 3.12, `pm4py` 2.7.8.4, `pandas` 3.1.1,
+  `numpy` 2.5.4) and `actitrac-r` (R 4.3.3, `actitraceR` `89e3e24`, Python 3.10.22,
+  `pm4py` 2.7.2, `pandas` 2.3.3).
+- **Test suite:** All 164 tests in `actitrac-bench` passed with 0 skipped (including all eight
+  logs and the `Emu.java` JDK cross-check).
+- **ActiTraC-ProM benchmark & Java emulation:** All 16 cluster-size vectors from
+  `benchmarks/docker/run.sh` (`default` and `prom_compatible`, frequency and distance) and
+  both `benchmarks/prom_emulation/run.py` runs (`all_on` 16/16 against ActiTraC-ProM, `all_off`
+  against `python-ActiTraC`) had 0 diffs against the baseline.
+- **actitraceR comparison:** All 236 label files across `actitraceR`, the replica, and
+  `python-ActiTraC` (Inductive Miner setup) matched the baseline with ARI 1.000 and identical
+  cluster sizes (0 missing, 0 with ARI < 1). Across the 96 `python-ActiTraC` Inductive Miner
+  runs, the median new/old runtime ratio was `1.058` (range `0.904` to `1.500` on 3–4 s runs).
+- **`docs/comparison/`:** Not regenerated because all cluster memberships and sizes are identical;
+  the run times reported in `docs/comparison/` remain those from the original run.
+
 ## Deliberate differences from ActiTraC-ProM
 
 | Area | ActiTraC-ProM | python-ActiTraC | Why |
@@ -501,8 +522,8 @@ them:
 | --- | --- | --- |
 | Algorithm | Clusters grown in parallel from random frequent seeds | Same |
 | Miner | Fodina, with Heuristics Miner commented out in the wizard | Native Heuristics Miner, because no Python Fodina was available |
-| Recall | Recall from ProM's `PetrinetEvaluatorPlugin` | pm4py token-based fitness |
-| Precision | ETConformance | pm4py ETConformance |
+| Recall | Recall from ProM's `PetrinetEvaluatorPlugin` | pm4py token-based fitness (or alignment fitness with `fitness_metric="alignments"`) |
+| Precision | ETConformance | pm4py ETConformance (or alignment precision with `fitness_metric="alignments"`) |
 | Trace score | F-score on a log holding only that trace | Same |
 | β | Fixed at 1; the UI value is unused | Applied as documented on the page |
 | Complexity | Average connector degree, as an ineffective tie-break | P/T connectivity, as a tie-break and an optional limit |

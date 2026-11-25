@@ -159,10 +159,28 @@ def test_look_ahead_requires_perfect_fit_even_with_a_lower_target():
 
     result = run_with(
         lambda variants: StoppingModel(), {"a": 10, "b": 1},
-        target_fitness=0.9, window_size=0, number_of_clusters=1,
+        target_fitness=0.9, window_size=0, number_of_clusters=2,
         cluster_remaining_traces=True,
     )
     assert variant_sets(result) == [{"a"}, {"b"}]
+
+
+def test_single_cluster_with_residual_is_rejected():
+    log = {("a", "b"): 10, ("c", "d"): 5}
+    with pytest.raises(ValueError, match="at least 2"):
+        cluster_traces(
+            log, number_of_clusters=1, cluster_remaining_traces=True, minimal_cluster_size=0.0
+        )
+
+
+def test_single_cluster_without_residual_is_allowed():
+    log = {("a", "b"): 10, ("c", "d"): 5}
+    result = cluster_traces(
+        log, number_of_clusters=1, cluster_remaining_traces=False, minimal_cluster_size=0.0
+    )
+    assert len(result) == 1
+    assert not result[0].is_residual
+    assert result[0].n_cases == 15
 
 
 def test_unfit_seed_still_forms_a_cluster():
@@ -237,7 +255,17 @@ class TestWindow:
         assert _select([3, 4], self.variants, None, 0.5) == 3
 
 
-@pytest.mark.parametrize("kwargs", [{"number_of_clusters": 0}, {"window_size": 1.5}])
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"number_of_clusters": 0},
+        {"window_size": 1.5},
+        {"minimal_cluster_size": -0.1},
+        {"minimal_cluster_size": 1.1},
+        {"stop_percentage": 0},
+        {"stop_percentage": 101},
+    ],
+)
 def test_invalid_parameters_are_rejected(kwargs):
     with pytest.raises(ValueError):
         cluster_traces({("a",): 1}, **kwargs)

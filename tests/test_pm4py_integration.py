@@ -37,6 +37,64 @@ def test_converted_net_agrees_with_ics_on_fitting_logs(counts):
     assert petri.token_fitness(variants, petri_net, initial, final) == pytest.approx(1.0)
 
 
+@pytest.mark.parametrize(
+    "counts",
+    [
+        {"aab": 10, "ab": 10},
+        {"abb": 10, "ab": 10},
+        {"abab": 10, "ab": 10},
+    ],
+)
+def test_converted_net_connects_start_and_end_loops(counts):
+    variants = make_variants(counts)
+    petri_net, initial, final = mine(variants).to_petri_net()
+    assert petri.is_easy_sound(petri_net, initial, final)
+    assert petri.alignment_fitness(variants, petri_net, initial, final) == 1.0
+    assert petri.token_fitness(variants, petri_net, initial, final) == pytest.approx(1.0)
+
+
+def _unsound_petri_net():
+    from pm4py.objects.petri_net.obj import Marking, PetriNet
+    from pm4py.objects.petri_net.utils.petri_utils import add_arc_from_to
+
+    net = PetriNet("unsound")
+    source, sink, dead = PetriNet.Place("source"), PetriNet.Place("sink"), PetriNet.Place("dead")
+    net.places.update({source, sink, dead})
+    t = PetriNet.Transition("t0", "a")
+    net.transitions.add(t)
+    add_arc_from_to(source, t, net)
+    add_arc_from_to(t, dead, net)
+    return net, Marking({source: 1}), Marking({sink: 1})
+
+
+def test_unsound_petri_net_scores_zero_for_alignments():
+    variants = make_variants({"ab": 10, "cd": 10})
+    petri_net, initial, final = _unsound_petri_net()
+    assert not petri.is_easy_sound(petri_net, initial, final)
+    with pytest.warns(RuntimeWarning, match="not easy sound"):
+        assert petri.alignment_fitness(variants, petri_net, initial, final) == 0.0
+
+    with pytest.warns(RuntimeWarning, match="not easy sound"):
+        result = cluster_traces(
+            {tuple("ab"): 10, tuple("cd"): 10},
+            number_of_clusters=2,
+            discover_algorithm=lambda _evlog: _unsound_petri_net(),
+            fitness_metric="alignments",
+            window_size=0,
+        )
+    assert sum(c.n_cases for c in result) == 20
+    with pytest.warns(RuntimeWarning, match="not easy sound"):
+        metrics = result.metrics(alignments=True)
+    assert metrics["align_fitness"].isna().all()
+    assert metrics["align_precision"].isna().all()
+
+
+def test_pt_connectivity_of_empty_net_is_zero():
+    from pm4py.objects.petri_net.obj import PetriNet
+
+    assert petri.pt_connectivity(PetriNet("empty")) == 0.0
+
+
 def test_converted_net_rejects_behaviour_outside_the_model():
     net, initial, final = mine(make_variants({"abc": 5})).to_petri_net()
     outside = make_variants({"cba": 1})
@@ -103,14 +161,18 @@ def test_metrics_with_conformance_measures():
     metrics = cluster_traces(two_groups(), number_of_clusters=2).metrics(
         conformance=True, alignments=True
     )
-    for column in ("replay_fitness", "replay_precision", "f_score", "pt_connectivity"):
+    for column in (
+        "replay_fitness",
+        "replay_precision",
+        "f_score",
+        "pt_connectivity",
+        "align_fitness",
+        "align_precision",
+    ):
         assert metrics[column].notna().all()
     average, full = metrics.iloc[-2], metrics.iloc[-1]
     assert average["replay_precision"] >= full["replay_precision"]
-    assert metrics["align_fitness"].iloc[:-2].notna().all()
-    # Mining two unrelated processes together yields an unsound net.
-    assert pd.isna(full["align_fitness"])
-    assert pd.isna(full["align_precision"])
+    assert average["align_fitness"] >= full["align_fitness"]
 
 
 def test_event_log_input():
@@ -162,6 +224,44 @@ class TestMultiObjective:
     def test_invalid_cluster_count_is_rejected(self):
         with pytest.raises(ValueError):
             cluster_traces_mo(two_groups(), number_of_clusters=0)
+
+    def test_invalid_beta_or_fitness_metric_is_rejected(self):
+        with pytest.raises(ValueError, match="beta"):
+            cluster_traces_mo(two_groups(), beta=-1.0)
+        with pytest.raises(ValueError, match="fitness_metric"):
+            cluster_traces_mo(two_groups(), fitness_metric="ics")
+
+    def test_alignments_fitness_metric_is_used_during_clustering(self, monkeypatch):
+        calls = {"token": 0, "align": 0}
+        orig_token = petri.token_fitness
+        orig_align = petri.alignment_fitness
+
+        def count_token(*args, **kwargs):
+            calls["token"] += 1
+            return orig_token(*args, **kwargs)
+
+        def count_align(*args, **kwargs):
+            calls["align"] += 1
+            return orig_align(*args, **kwargs)
+
+        monkeypatch.setattr(petri, "token_fitness", count_token)
+        monkeypatch.setattr(petri, "alignment_fitness", count_align)
+        result = self.run(
+            discover_algorithm=lambda log: pm4py.discover_petri_net_inductive(
+                log, noise_threshold=0.2
+            ),
+            fitness_metric="alignments",
+        )
+        assert sum(c.n_cases for c in result) == 60
+        assert calls["align"] > 0
+        assert calls["token"] == 0
+
+    def test_metrics_uses_cluster_traces_mo_beta(self):
+        result = self.run(beta=2.0)
+        metrics = result.metrics(conformance=True)
+        row = metrics.iloc[0]
+        expected = petri.f_score(row["replay_precision"], row["replay_fitness"], beta=2.0)
+        assert row["f_score"] == pytest.approx(expected)
 
 
 def test_f_score_skips_precision_only_when_recall_rules_out_the_floor(monkeypatch):

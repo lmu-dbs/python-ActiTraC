@@ -124,9 +124,14 @@ def distance_rows(
     traces = [v.activities for v in variants]
     if metric == "mra":
         features = mra_features(traces)
+        zero = features.sum(axis=1) == 0
 
         def row(position: int) -> np.ndarray:
-            return np.linalg.norm(features - features[position], axis=1)
+            distances = np.linalg.norm(features - features[position], axis=1)
+            if zero[position]:
+                distances[zero] = np.inf
+                distances[position] = 0.0
+            return distances
 
         return row
 

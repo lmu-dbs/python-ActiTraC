@@ -85,6 +85,14 @@ def test_mra_distance_separates_traces_with_different_patterns():
     assert row(2)[3] < row(2)[1]
 
 
+def test_mra_distance_between_distinct_zero_feature_variants_is_infinite():
+    variants = make_variants({"abab": 1, "abcab": 1, "pq": 1, "xy": 1})
+    row = distance_rows("mra", variants)
+    assert row(2)[2] == 0.0
+    assert np.isinf(row(2)[3])
+    assert np.isfinite(row(2)[0])
+
+
 @pytest.mark.parametrize(
     ("a", "b", "expected"),
     [("", "", 0), ("abc", "", 3), ("abc", "abc", 0), ("abcd", "acbd", 1), ("abc", "axc", 1)],

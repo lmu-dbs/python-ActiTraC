@@ -33,9 +33,9 @@ class HeuristicsSettings:
 
     def for_log_size(self, cases: int) -> HeuristicsSettings:
         """Lower thresholds that a log of ``cases`` cases could never reach."""
-        if not self.adapt_to_log_size:
+        if not self.adapt_to_log_size or cases <= 0:
             return self
-        reachable = cases / (cases + 1)
+        reachable = cases / (cases + self.dependency_divisor)
         lowered = reachable - 0.01
         return replace(
             self,
@@ -62,6 +62,8 @@ class HeuristicsNet:
     outputs: tuple[tuple[frozenset[int], ...], ...]
     # Input sets in ProM's order. When given, replay follows ProM's seeded token choice.
     prom_inputs: tuple[tuple[tuple[int, ...], ...], ...] | None = field(default=None, compare=False)
+    start_tasks: tuple[int, ...] = field(default=(), compare=False)
+    end_tasks: tuple[int, ...] = field(default=(), compare=False)
     _index: dict[str, int] = field(init=False, repr=False, compare=False)
     _related: tuple[dict[int, tuple[int, ...]], ...] = field(
         init=False, repr=False, compare=False
@@ -168,6 +170,8 @@ class HeuristicsNet:
 
     def trace_fitness(self, trace: Sequence[str]) -> float:
         """Share of a trace that parses cleanly, used by look-ahead and residuals."""
+        if not trace:
+            return 0.0
         result = self.replay(trace)
         return (result.parsed - result.extra - result.missing) / len(trace)
 
@@ -347,6 +351,8 @@ def mine(
         tuple(prom_input_sets(i, inputs[i], and_in, threshold) for i in labels)
         if settings.prom_replay
         else None,
+        start_tasks=(best_start,) if size else (),
+        end_tasks=(best_end,) if size else (),
     )
 
 

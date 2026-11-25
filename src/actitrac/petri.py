@@ -6,8 +6,9 @@ prints a banner on import.
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .heuristics import HeuristicsNet
 from .log import Variant
@@ -87,6 +88,21 @@ def heuristics_to_petri_net(net: HeuristicsNet):
                         add_arc_from_to(out_places[task, k], silent, petri)
                         add_arc_from_to(silent, in_places[element, m], petri)
 
+    # Start/end tasks with incoming/outgoing loops have non-empty input/output sets,
+    # so wire them to source/sink via silent transitions to keep the net connected.
+    for task in net.start_tasks:
+        if net.inputs[task]:
+            silent = transition(f"tau_start_{task}")
+            add_arc_from_to(source, silent, petri)
+            for k in range(len(net.inputs[task])):
+                add_arc_from_to(silent, in_places[task, k], petri)
+    for task in net.end_tasks:
+        if net.outputs[task]:
+            silent = transition(f"tau_end_{task}")
+            for k in range(len(net.outputs[task])):
+                add_arc_from_to(out_places[task, k], silent, petri)
+            add_arc_from_to(silent, sink, petri)
+
     return petri, Marking({source: 1}), Marking({sink: 1})
 
 
@@ -111,12 +127,28 @@ def _token_replay(variants: Sequence[Variant], net, initial, final):
     return token_replay.apply(event_log(variants, weighted=False), net, initial, final, parameters=_QUIET)
 
 
-def alignment_fitness(variants: Sequence[Variant], net, initial, final) -> float:
+def warn_unsound() -> None:
+    """Warn once per unsound-model evaluation that alignment fitness falls back to 0."""
+    warnings.warn(
+        "the discovered Petri net is not easy sound, so alignments cannot be computed; "
+        "its alignment fitness counts as 0",
+        RuntimeWarning,
+        stacklevel=3,
+    )
+
+
+def alignment_fitness(
+    variants: Sequence[Variant], net, initial, final, *, check_soundness: bool = True
+) -> float:
     """Frequency-weighted alignment fitness, ignoring pm4py's silent-move epsilon.
 
     pm4py's ``log_fitness`` keeps that tiny cost, so a model that fits perfectly
-    can score just below 1 and fail a target of 1.
+    can score just below 1 and fail a target of 1. Returns 0.0 with a warning
+    if the net is not easy-sound (when ``check_soundness`` is true).
     """
+    if check_soundness and not is_easy_sound(net, initial, final):
+        warn_unsound()
+        return 0.0
     cost = worst = 0
     for variant, result in zip(variants, _alignments(variants, net, initial, final)):
         if result is None:
@@ -174,6 +206,8 @@ def f_score(precision: float, recall: float, beta: float = 1.0) -> float:
 
 def pt_connectivity(net) -> float:
     """Place/transition connectivity degree: ``(|A|/|P| + |A|/|T|) / 2``."""
+    if not net.places or not net.transitions:
+        return 0.0
     arcs = len(net.arcs)
     return (arcs / len(net.places) + arcs / len(net.transitions)) / 2
 
@@ -186,10 +220,23 @@ class PetriNetModel:
     initial: object
     final: object
     metric: str = "alignments"
+    _sound: bool | None = field(default=None, init=False, repr=False, compare=False)
+
+    def _is_sound(self) -> bool:
+        if self._sound is None:
+            self._sound = is_easy_sound(self.net, self.initial, self.final)
+            if not self._sound:
+                warn_unsound()
+        return self._sound
 
     def fitness(self, variants: Sequence[Variant]) -> float:
-        measure = alignment_fitness if self.metric == "alignments" else token_fitness
-        return measure(variants, self.net, self.initial, self.final)
+        if self.metric == "alignments":
+            if not self._is_sound():
+                return 0.0
+            return alignment_fitness(
+                variants, self.net, self.initial, self.final, check_soundness=False
+            )
+        return token_fitness(variants, self.net, self.initial, self.final)
 
     def trace_fitness(self, trace: Sequence[str]) -> float:
         variant = Variant(0, tuple(trace), 1)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass
 
@@ -53,6 +54,9 @@ def extract_variants(
 
     Events are sorted by timestamp within each case. Ties in frequency keep the
     order in which cases first appear in the log, as ProM's ``GroupedXLog`` does.
+    Events with a missing activity name are dropped with a warning; a missing
+    lifecycle value becomes an empty transition (``name+``) in ``"classifier"``
+    mode and is dropped in ``"complete"`` mode.
     """
     if isinstance(log, VariantLog):
         return log
@@ -102,15 +106,24 @@ def _from_frame(
 
     events = frame
     if lifecycle_key in frame.columns and lifecycle == "complete":
-        events = frame[frame[lifecycle_key].astype(str).str.lower() == "complete"]
+        lc = frame[lifecycle_key].astype(object).fillna("").astype(str).str.lower()
+        events = frame[lc == "complete"]
+    missing_activity = events[activity_key].isna()
+    if missing_activity.any():
+        warnings.warn(
+            f"dropped {int(missing_activity.sum())} events without an activity name",
+            UserWarning,
+            stacklevel=3,
+        )
+        events = events[~missing_activity]
     # Cases keep their log order, which decides frequency ties below.
     traces: dict[object, list[str]] = {case: [] for case in events[case_key].tolist()}
     if timestamp_key in events.columns:
         events = events.sort_values(timestamp_key, kind="stable")
 
-    names = events[activity_key].astype(str)
+    names = events[activity_key].astype(object).fillna("").astype(str)
     if lifecycle_key in frame.columns and lifecycle == "classifier":
-        names = names + "+" + events[lifecycle_key].astype(str)
+        names = names + "+" + events[lifecycle_key].astype(object).fillna("").astype(str)
 
     for case, name in zip(events[case_key].tolist(), names.tolist()):
         traces[case].append(name)

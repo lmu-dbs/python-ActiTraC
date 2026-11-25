@@ -38,7 +38,7 @@ log = pm4py.read_xes("log.xes", return_legacy_log_object=False)
 
 result = cluster_traces(
     log,
-    number_of_clusters=4,
+    number_of_clusters=4,           # must be >= 2 when cluster_remaining_traces=True
     target_fitness=1.0,
     minimal_cluster_size=0.25,
     window_size=0.25,               # 0 selects purely by frequency
@@ -52,7 +52,7 @@ result.logs()                       # one filtered log per cluster
 result.select_cluster(0)            # one of them; ids start at 0
 result.group_by_cluster()           # pandas groupby on the cluster
 result.variant_logs()               # one {activities: count} dict per cluster
-result.metrics(conformance=True)    # per cluster, weighted average, full log
+result.metrics(conformance=True, beta=1.0)  # per cluster, weighted average, full log
 ```
 
 The input can be a DataFrame, a pm4py `EventLog` or a `{activity_tuple: count}`
@@ -99,6 +99,7 @@ result = cluster_traces_mo(
     minimal_correctness=0.95,       # F-score of the model on its cluster
     minimal_trace_correctness=0.90, # F-score of the model on the new variant
     beta=1.0,
+    fitness_metric="token_replay",  # or "alignments" (alignment fitness + precision; much slower)
     seed=42,
 )
 ```
@@ -198,8 +199,16 @@ pip install -e ".[dev]"
 pytest
 ```
 
-`tests/test_prom_reference.py` needs the Helpdesk log and is skipped unless
-`ACTITRAC_HELPDESK_CSV` points to it.
+`tests/test_prom_reference.py` checks Helpdesk when `ACTITRAC_HELPDESK_CSV` points to it,
+and all eight benchmark logs when `ACTITRAC_DATA_DIR` points to the log directory.
+`tests/test_online_alignment.py` also cross-checks `benchmarks/prom_emulation/Emu.java`
+when a JDK (`javac`/`java`) is installed. To run the entire suite including all eight
+logs and the Java emulation in the benchmark container:
+
+```bash
+docker run --rm -v actitrac-data:/data:ro -v "$PWD":/repo:ro actitrac-bench bash -c \
+    'ACTITRAC_HELPDESK_CSV=/data/logs/Helpdesk.csv ACTITRAC_DATA_DIR=/data/logs python -m pytest -q -p no:cacheprovider'
+```
 
 ## Citation
 

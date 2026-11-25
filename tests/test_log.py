@@ -73,3 +73,36 @@ def test_invalid_variant_dict_is_rejected(counts):
 def test_missing_columns_are_reported():
     with pytest.raises(ValueError, match="concept:name"):
         extract_variants(pd.DataFrame({"case:concept:name": ["1"]}))
+
+
+def test_missing_lifecycle_and_activity_values_do_not_produce_nan():
+    log = pd.DataFrame(
+        [
+            ("1", "a", 1, "complete"),
+            ("1", "b", 2, None),
+            ("2", "a", 1, "complete"),
+            ("2", None, 2, "complete"),
+        ],
+        columns=["case:concept:name", "concept:name", "time:timestamp", "lifecycle:transition"],
+    )
+    with pytest.warns(UserWarning, match="without an activity"):
+        variants = extract_variants(log).variants
+    assert all(isinstance(a, str) for v in variants for a in v.activities)
+    assert [v.activities for v in variants] == [
+        ("a+complete", "b+"),
+        ("a+complete",),
+    ]
+    with pytest.warns(UserWarning, match="without an activity"):
+        complete_only = extract_variants(log, lifecycle="complete").variants
+    assert [(v.activities, v.frequency) for v in complete_only] == [(("a",), 2)]
+
+
+def test_categorical_columns_are_supported():
+    log = pd.DataFrame(
+        [("1", "a", 1, "complete"), ("1", "b", 2, None)],
+        columns=["case:concept:name", "concept:name", "time:timestamp", "lifecycle:transition"],
+    )
+    log["concept:name"] = log["concept:name"].astype("category")
+    log["lifecycle:transition"] = log["lifecycle:transition"].astype("category")
+    variants = extract_variants(log).variants
+    assert variants[0].activities == ("a+complete", "b+")

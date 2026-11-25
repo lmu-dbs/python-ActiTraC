@@ -104,6 +104,14 @@ def test_small_logs_lower_unreachable_thresholds():
     assert HeuristicsSettings().for_log_size(100).dependency_threshold == 0.9
     fixed = HeuristicsSettings(adapt_to_log_size=False).for_log_size(1)
     assert fixed.dependency_threshold == 0.9
+    custom_div = HeuristicsSettings(dependency_divisor=5).for_log_size(5)
+    assert custom_div.dependency_threshold == pytest.approx(0.49)
+    assert HeuristicsSettings().for_log_size(0).dependency_threshold == 0.9
+
+
+def test_empty_trace_fitness_is_zero():
+    net = mine(make_variants({"abc": 1}))
+    assert net.trace_fitness(()) == 0.0
 
 
 def test_conflicting_or_join_consumes_the_smallest_cover():
